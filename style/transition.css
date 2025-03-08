@@ -1,0 +1,51 @@
+/* Template transisi no 1 */
+.fade-slide-in {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 1s ease-in-out, transform 1s ease-in-out;
+}
+
+.loaded .fade-slide-in {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Transisi no 2 */
+.fade-out {
+  opacity: 0;
+  transition: opacity 1s ease-in-out;
+}
+
+.loaded .fade-out {
+  opacity: 1;
+}
+
+/* transisi no 3 */
+.fade-scroll {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 1s ease-in-out, transform 1s ease-in-out;
+}
+
+.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.fade-in {
+  opacity: 0;
+  transition: opacity 1s ease-in-out, transform 1s ease-in-out;
+}
+
+.visible {
+  opacity: 1;
+}
+
+.fade-in-image {
+  opacity: 0;
+  transition: opacity 0.8s ease-in-out;
+}
+
+.fade-in-image.visible {
+  opacity: 1;
+}
