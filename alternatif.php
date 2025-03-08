@@ -72,6 +72,7 @@
                                                     <th>Deskripsi</th>
                                                     <th>Foto</th>
                                                     <th>URL</th>
+                                                    <th>Aksi</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
@@ -84,26 +85,74 @@
                                                 if (mysqli_num_rows($result) > 0) {
                                                     while ($row = mysqli_fetch_assoc($result)) {
                                                         echo "<tr>
-                                    <td>{$row['id_alternatif']}</td>
-                                    <td>{$row['nama_wisata']}</td>
-                                    <td>{$row['koordinat']}</td>
-                                    <td>{$row['deskripsi']}</td>
-                                   <td>
-                                      " . (!empty($row['foto']) ?
+                <td>{$row['id_alternatif']}</td>
+                <td>{$row['nama_wisata']}</td>
+                <td>{$row['koordinat']}</td>
+                <td>{$row['deskripsi']}</td>
+                <td>
+                  " . (!empty($row['foto']) ?
                                                             "<a href='#' data-bs-toggle='modal' data-bs-target='#imageModal' onclick='showImage(\"foto_wisata/{$row['foto']}\")'>
-                                        <img src='foto_wisata/{$row['foto']}' width='50' class='img-thumbnail'>
-                                      </a>"
+                    <img src='foto_wisata/{$row['foto']}' width='50' class='img-thumbnail'>
+                  </a>"
                                                             : "Tidak ada foto") . "
-                                    </td>
-                                    <td><a href='{$row['url']}' target='_blank' class='btn btn-info btn-sm'><i class='ti-location-pin'></i> Lihat Lokasi</a></td>
-                                  </tr>";
+                </td>
+                <td><a href='{$row['url']}' target='_blank' class='btn btn-info btn-sm'><i class='ti-location-pin'></i> Lihat Lokasi</a></td>
+                <td>
+                  <button class='btn btn-warning btn-sm' data-bs-toggle='modal' data-bs-target='#modalEditAlternatif{$row['id_alternatif']}'>
+                    <i class='ti-pencil'></i>
+                  </button>
+                  <a href='crud/hapus-alternatif.php?id={$row['id_alternatif']}' class='btn btn-danger btn-sm' onclick='return confirm(\"Yakin ingin menghapus?\")'>
+                    <i class='ti-trash'></i>
+                  </a>
+                </td>
+              </tr>";
+
+                                                        echo "<div class='modal fade' id='modalEditAlternatif{$row['id_alternatif']}' tabindex='-1'>
+                <div class='modal-dialog'>
+                  <div class='modal-content'>
+                    <div class='modal-header'>
+                      <h5 class='modal-title'>Edit Data Wisata</h5>
+                      <button type='button' class='btn-close' data-bs-dismiss='modal'></button>
+                    </div>
+                    <div class='modal-body'>
+                      <form action='crud/edit-alternatif.php' method='POST' enctype='multipart/form-data'>
+                        <input type='hidden' name='id_alternatif' value='{$row['id_alternatif']}'>
+                        <div class='mb-3'>
+                          <label>Nama Wisata</label>
+                          <input type='text' name='nama_wisata' class='form-control' value='{$row['nama_wisata']}' required>
+                        </div>
+                        <div class='mb-3'>
+                          <label>Koordinat</label>
+                          <input type='text' name='koordinat' class='form-control' value='{$row['koordinat']}' required>
+                        </div>
+                        <div class='mb-3'>
+                          <label>Deskripsi</label>
+                          <textarea name='deskripsi' class='form-control' required>{$row['deskripsi']}</textarea>
+                        </div>
+                        <div class='mb-3'>
+                          <label>Ganti Foto (Opsional)</label>
+                          <input type='file' name='foto' class='form-control'>
+                          <small class='text-muted'>Abaikan jika tidak ingin mengganti foto.</small>
+                        </div>
+                        <div class='mb-3'>
+                          <label>URL Google Maps</label>
+                          <input type='text' name='url' class='form-control' value='{$row['url']}' required>
+                        </div>
+                        <button type='submit' class='btn btn-success'>Simpan</button>
+                        <button type='button' class='btn btn-secondary' data-bs-dismiss='modal'>Batal</button>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              </div>";
                                                     }
                                                 } else {
-                                                    echo "<tr><td colspan='6' class='text-center'>Tidak ada data tersedia</td></tr>";
+                                                    echo "<tr><td colspan='7' class='text-center'>Tidak ada data tersedia</td></tr>";
                                                 }
                                                 ?>
                                             </tbody>
                                         </table>
+
                                     </div>
                                 </div>
                             </div>
