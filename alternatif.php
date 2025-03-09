@@ -10,49 +10,41 @@
                 <div class="content-wrapper">
                     <div class="row">
                         <div class="col-sm-12">
-                            <?php
-                            $notif = isset($_SESSION['status']) ? $_SESSION['status'] : null;
-                            unset($_SESSION['status']);
-                            if ($notif): ?>
-                                <div class="alert alert-dismissible fade show 
-    <?php echo ($notif == 'success-add' || $notif == 'success-edit' || $notif == 'success-delete') ? 'alert-success' : 'alert-danger'; ?>"
-                                    role="alert">
-                                    <?php
-                                    switch ($notif) {
-                                        case 'success-add':
-                                            echo "Data berhasil ditambahkan!";
-                                            break;
-                                        case 'success-edit':
-                                            echo "Data berhasil diperbarui!";
-                                            break;
-                                        case 'success-delete':
-                                            echo "Data berhasil dihapus!";
-                                            break;
-                                        case 'error-add':
-                                            echo "Gagal menambahkan data!";
-                                            break;
-                                        case 'error-edit':
-                                            echo "Gagal memperbarui data!";
-                                            break;
-                                        case 'error-delete':
-                                            echo "Gagal menghapus data!";
-                                            break;
-                                    }
-                                    ?>
-                                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            <?php if (isset($_SESSION['status'])): ?>
+                                <div class="position-fixed top-0 end-0 p-3" style="z-index: 1050">
+                                    <div id="liveToast" class="toast align-items-center text-white 
+            <?php echo ($_SESSION['status'] == 'success-add' || $_SESSION['status'] == 'success-edit' || $_SESSION['status'] == 'success-delete') ? 'bg-success' : 'bg-danger'; ?> 
+            border-0 show" role="alert" aria-live="assertive" aria-atomic="true">
+                                        <div class="d-flex">
+                                            <div class="toast-body">
+                                                <?php
+                                                switch ($_SESSION['status']) {
+                                                    case 'success-add':
+                                                        echo "Data berhasil ditambahkan!";
+                                                        break;
+                                                    case 'success-edit':
+                                                        echo "Data berhasil diperbarui!";
+                                                        break;
+                                                    case 'success-delete':
+                                                        echo "Data berhasil dihapus!";
+                                                        break;
+                                                    case 'error-add':
+                                                        echo "Gagal menambahkan data!";
+                                                        break;
+                                                    case 'error-edit':
+                                                        echo "Gagal memperbarui data!";
+                                                        break;
+                                                    case 'error-delete':
+                                                        echo "Gagal menghapus data!";
+                                                        break;
+                                                }
+                                                ?>
+                                            </div>
+                                            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                                        </div>
+                                    </div>
                                 </div>
-
-                                <script>
-                                    setTimeout(function() {
-                                        let alertBox = document.querySelector('.alert');
-                                        if (alertBox) {
-                                            alertBox.classList.add('fade');
-                                            setTimeout(function() {
-                                                alertBox.remove();
-                                            }, 500);
-                                        }
-                                    }, 3000);
-                                </script>
+                                <?php unset($_SESSION['status']); ?>
                             <?php endif; ?>
                             <div class="card">
                                 <div class="card-body">

@@ -10,3 +10,4 @@
 <script src="assets/js/jquery.cookie.js" type="text/javascript"></script>
 <script src="assets/js/dashboard.js"></script>
 <script src="assets/js/proBanner.js"></script>
+<script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>

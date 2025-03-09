@@ -28,4 +28,7 @@
     href="assets/js/select.dataTables.min.css" />
   <link rel="stylesheet" href="assets/css/vertical-layout-light/style.css" />
   <link rel="shortcut icon" href="assets/images/favicon.png" />
+  <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+
+
 </head>
