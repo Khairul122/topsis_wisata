@@ -1,30 +1,30 @@
 <?php
 $navItems = [
-    [
-        'url' => 'dashboard.php',
-        'icon' => 'mdi-grid-large',
-        'title' => 'Dashboard'
-    ],
-    [
-        'url' => 'kriteria.php',
-        'icon' => 'mdi-grid-large',
-        'title' => 'Kriteria'
-    ],
-    [
-        'url' => 'alternatif.php',
-        'icon' => 'mdi-grid-large',
-        'title' => 'Alternatif'
-    ],
-    [
-        'url' => 'kuesioner.php',
-        'icon' => 'mdi-grid-large',
-        'title' => 'Kuesioner'
-    ],
-    [
-        'url' => 'riwayat-rekoemendasi.php',
-        'icon' => 'mdi-grid-large',
-        'title' => 'Riwayat Rekomendasi'
-    ]
+  [
+      'url' => 'dashboard.php',
+      'icon' => 'mdi-view-dashboard',
+      'title' => 'Dashboard'
+  ],
+  [
+      'url' => 'kriteria.php',
+      'icon' => 'mdi-clipboard-list',
+      'title' => 'Kriteria'
+  ],
+  [
+      'url' => 'alternatif.php',
+      'icon' => 'mdi-map-marker-multiple',
+      'title' => 'Alternatif'
+  ],
+  [
+      'url' => 'kuesioner.php',
+      'icon' => 'mdi-clipboard-text',
+      'title' => 'Kuesioner'
+  ],
+  [
+      'url' => 'riwayat-rekomendasi.php',
+      'icon' => 'mdi-history',
+      'title' => 'Riwayat Rekomendasi'
+  ]
 ];
 
 $currentPage = basename($_SERVER['PHP_SELF']);

@@ -43,51 +43,52 @@
             background: #eee;
             border: 1px solid #ccc;
         }
+
         .name-input-container {
-    margin-bottom: 30px;
-    background-color: #f9f9f9;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
+            margin-bottom: 30px;
+            background-color: #f9f9f9;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
 
-.name-input-container:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-}
+        .name-input-container:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
 
-.name-label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: 600;
-    color: #2E8B57;
-    font-size: 1.1rem;
-}
+        .name-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2E8B57;
+            font-size: 1.1rem;
+        }
 
-.name-input {
-    width: 100%;
-    padding: 12px 15px;
-    border: 2px solid #ddd;
-    border-radius: 6px;
-    font-size: 1rem;
-    transition: border-color 0.3s ease, box-shadow 0.3s ease;
-}
+        .name-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
 
-.name-input:focus {
-    outline: none;
-    border-color: #2E8B57;
-    box-shadow: 0 0 0 3px rgba(46, 139, 87, 0.25);
-}
+        .name-input:focus {
+            outline: none;
+            border-color: #2E8B57;
+            box-shadow: 0 0 0 3px rgba(46, 139, 87, 0.25);
+        }
 
-.name-input::placeholder {
-    color: #aaa;
-}
+        .name-input::placeholder {
+            color: #aaa;
+        }
     </style>
 
     <section id="section-2" class="section-2">
         <div class="container-section2">
-            <p class="introduction-village fade-scroll">Introduction Berastagi Tourism</p>
+            <p class="introduction-village fade-scroll">Peta Lokasi Wisata Berastagi</p>
             <hr class="line-section2 fade-scroll" />
             <div class="content-explore">
                 <div id="berastagi-map"></div>
@@ -199,7 +200,7 @@
     }
     ?>
 
-    <section class="section-4">
+    <section class="section-4" id="section-4">
         <div class="center">
             <p class="tour-packages fade-scroll">Rekomendasi Wisata</p>
         </div>
@@ -266,7 +267,7 @@
 
     <style>
         .kuesioner-wrapper {
-            max-width: 2000px;
+            max-width: 1800px;
             margin: 0 auto;
             height: 2000px;
             position: relative;
@@ -505,16 +506,16 @@
     </script>
     <section class="section-gradient">
         <div class="container-grd">
-        <p class="head-grd fade-scroll">Temukan Destinasi Wisata Terbaik</p>
-        <p class="desc-grd fade-scroll">
-            Dapatkan rekomendasi wisata terbaik berdasarkan preferensi Anda. <br />
-            Jelajahi keindahan alam, budaya, dan kuliner khas di berbagai destinasi menarik.
-        </p>
-        <hr class="line-sectiongrd fade-scroll" />
-        <div class="contact-grd fade-scroll">
-            <p>Kontak: 08123456789</p>
-            <p>Email: info@wisataindonesia.com</p>
-        </div>
+            <p class="head-grd fade-scroll">Temukan Destinasi Wisata Terbaik</p>
+            <p class="desc-grd fade-scroll">
+                Dapatkan rekomendasi wisata terbaik berdasarkan preferensi Anda. <br />
+                Jelajahi keindahan alam, budaya, dan kuliner khas di berbagai destinasi menarik.
+            </p>
+            <hr class="line-sectiongrd fade-scroll" />
+            <div class="contact-grd fade-scroll">
+                <p>Kontak: 08123456789</p>
+                <p>Email: info@wisataindonesia.com</p>
+            </div>
         </div>
     </section>
     <section class="section-5">

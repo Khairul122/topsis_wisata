@@ -10,6 +10,50 @@
         <div class="content-wrapper">
           <div class="row">
             <div class="col-sm-12">
+              <?php
+              $notif = isset($_SESSION['status']) ? $_SESSION['status'] : null;
+              unset($_SESSION['status']);
+              if ($notif): ?>
+                <div class="alert alert-dismissible fade show 
+    <?php echo ($notif == 'success-add' || $notif == 'success-edit' || $notif == 'success-delete') ? 'alert-success' : 'alert-danger'; ?>"
+                  role="alert">
+                  <?php
+                  switch ($notif) {
+                    case 'success-add':
+                      echo "Data berhasil ditambahkan!";
+                      break;
+                    case 'success-edit':
+                      echo "Data berhasil diperbarui!";
+                      break;
+                    case 'success-delete':
+                      echo "Data berhasil dihapus!";
+                      break;
+                    case 'error-add':
+                      echo "Gagal menambahkan data!";
+                      break;
+                    case 'error-edit':
+                      echo "Gagal memperbarui data!";
+                      break;
+                    case 'error-delete':
+                      echo "Gagal menghapus data!";
+                      break;
+                  }
+                  ?>
+                  <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+
+                <script>
+                  setTimeout(function() {
+                    let alertBox = document.querySelector('.alert');
+                    if (alertBox) {
+                      alertBox.classList.add('fade');
+                      setTimeout(function() {
+                        alertBox.remove();
+                      }, 500);
+                    }
+                  }, 3000);
+                </script>
+              <?php endif; ?>
               <div class="card">
                 <div class="card-body">
                   <h4 class="card-title">Riwayat Rekomendasi</h4>
@@ -41,8 +85,13 @@
                               <td>
                                 <button type="button" class="btn btn-primary btn-sm detail-btn"
                                   data-id="<?= $data['id_riwayat'] ?>">
-                                  Detail
+                                  <i class="mdi mdi-eye"></i> Detail
                                 </button>
+                                <a href="crud/hapus-rekomendasi.php?id=<?= $data['id_riwayat'] ?>"
+                                  class="btn btn-danger btn-sm hapus-btn"
+                                  onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?')">
+                                  <i class="mdi mdi-delete"></i> Hapus
+                                </a>
                               </td>
                             </tr>
                           <?php
@@ -219,12 +268,12 @@
           $.each(responseData.rekomendasi, function(index, item) {
             if (item.id_alternatif == alternatifId) {
               namaWisata = item.nama_wisata;
-              return false; 
+              return false;
             }
           });
 
           $('#kuesioner-section').show();
-          $('#kuesioner-title').text('Detail Kuesioner: ');
+          $('#kuesioner-title').text('Detail Kuesioner');
 
           var kuesionerData = responseData.kuesioner_data[alternatifId];
           var content = '';
@@ -232,21 +281,38 @@
           $.each(kuesionerData, function(index, item) {
             content += '<div class="mb-4">';
             content += '<h6 class="font-weight-bold">' + item.kriteria_nama + ' (' + item.kriteria_id + ')</h6>';
-            content += '<p>Nilai: <span class="badge badge-info">' + item.nilai + '</span></p>';
+            content += '<p>Nilai: <span class="badge badge-info">' + item.nilai + '</span>';
+            content += ' <span class="badge badge-' + (item.kriteria_jenis === 'benefit' ? 'success' : 'danger') + '">' +
+              item.kriteria_jenis + '</span></p>';
 
-            if (item.kuesioner && item.kuesioner.length > 0) {
+            if (item.pertanyaan_grouped && item.pertanyaan_grouped.length > 0) {
               content += '<div class="ml-3">';
-              $.each(item.kuesioner, function(kIdx, kItem) {
-                content += '<div class="mb-3">';
-                content += '<p><strong>Pertanyaan:</strong> ' + kItem.pertanyaan + '</p>';
-                content += '<p><strong>Opsi Jawaban:</strong> ' + kItem.opsi_jawaban + '</p>';
-                content += '<p><strong>Bobot:</strong> ' + kItem.bobot + '</p>';
+
+              $.each(item.pertanyaan_grouped, function(gIdx, group) {
+                content += '<div class="mb-4">';
+                content += '<p class="mb-2"><strong>' + (gIdx + 1) + '. ' + group.pertanyaan + '</strong></p>';
+
+                $.each(group.opsi, function(oIdx, opsi) {
+                  var isSelected = opsi.selected;
+                  var radioId = 'radio_' + item.kriteria_id + '_' + gIdx + '_' + oIdx;
+
+                  content += '<div class="form-check mb-2">';
+                  content += '<input class="form-check-input" type="radio" name="kuesioner_' +
+                    item.kriteria_id + '_' + gIdx + '" id="' + radioId + '" ' +
+                    (isSelected ? 'checked' : '') + ' disabled>';
+                  content += '<label class="form-check-label" for="' + radioId + '">';
+                  content += opsi.opsi_jawaban + ' (Bobot: ' + opsi.bobot + ')';
+                  content += '</label>';
+                  content += '</div>';
+                });
+
                 content += '</div>';
 
-                if (kIdx < item.kuesioner.length - 1) {
-                  content += '<hr class="my-2">';
+                if (gIdx < item.pertanyaan_grouped.length - 1) {
+                  content += '<hr class="my-3">';
                 }
               });
+
               content += '</div>';
             } else {
               content += '<p class="text-muted">Tidak ada data kuesioner</p>';
@@ -307,6 +373,36 @@
 
     .table-primary {
       background-color: rgba(103, 119, 239, 0.2) !important;
+    }
+
+    /* Style baru untuk radio button */
+    .form-check {
+      position: relative;
+      display: block;
+      padding-left: 1.25rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .form-check-input {
+      display: inline-block !important;
+      visibility: visible !important;
+      opacity: 1 !important;
+      position: absolute !important;
+      margin-top: 0.3rem;
+      margin-left: -1.25rem;
+      width: 16px;
+      height: 16px;
+    }
+
+    .form-check-label {
+      margin-bottom: 0;
+      margin-left: 0.5rem;
+      display: inline-block;
+    }
+
+    .kuesioner-radio-container {
+      margin-left: 1.5rem;
+      margin-bottom: 0.75rem;
     }
   </style>
 </body>
