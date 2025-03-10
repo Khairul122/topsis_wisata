@@ -84,7 +84,9 @@
                               <td><?= date('d-m-Y H:i', strtotime($data['tanggal'])) ?></td>
                               <td>
                                 <button type="button" class="btn btn-primary btn-sm detail-btn"
-                                  data-id="<?= $data['id_riwayat'] ?>">
+                                  data-id="<?= $data['id_riwayat'] ?>"
+                                  data-user="<?= $data['nama_user'] ?>"
+                                  data-date="<?= date('Y-m-d', strtotime($data['tanggal'])) ?>">
                                   <i class="mdi mdi-eye"></i> Detail
                                 </button>
                                 <a href="crud/hapus-rekomendasi.php?id=<?= $data['id_riwayat'] ?>"
@@ -134,9 +136,14 @@
                   <div class="col-md-12">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                       <h5>Hasil Rekomendasi</h5>
-                      <button type="button" class="btn btn-info btn-sm" id="lihat-kuesioner-btn">
-                        Lihat Kuesioner
-                      </button>
+                      <div>
+                        <button type="button" class="btn btn-info btn-sm me-2" id="lihat-kuesioner-btn">
+                          Lihat Kuesioner
+                        </button>
+                        <button type="button" class="btn btn-primary btn-sm" id="lihat-perhitungan-btn">
+                          Lihat Perhitungan
+                        </button>
+                      </div>
                     </div>
                     <div class="table-responsive">
                       <table class="table table-bordered">
@@ -171,6 +178,29 @@
                     </div>
                   </div>
                 </div>
+
+                <div class="row mt-4" id="perhitungan-section" style="display: none;">
+                  <div class="col-md-12">
+                    <div class="card">
+                      <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 id="perhitungan-title">Detail Perhitungan TOPSIS</h5>
+                        <button type="button" class="btn btn-sm btn-secondary" id="tutup-perhitungan-btn">Tutup</button>
+                      </div>
+                      <div class="card-body">
+                        <div style="max-height: 500px; overflow-y: auto;">
+                          <div id="perhitungan-content">
+                            <div class="text-center">
+                              <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                              </div>
+                              <p class="mt-2">Memuat data perhitungan...</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
 
             </div>
@@ -186,12 +216,18 @@
     $(document).ready(function() {
       var responseData = null;
       var selectedAlternatifId = null;
+      var currentUser = null;
+      var currentDate = null;
 
       $('.detail-btn').on('click', function() {
         var id = $(this).data('id');
+        currentUser = $(this).data('user');
+        currentDate = $(this).data('date');
 
         $('#kuesioner-section').hide();
+        $('#perhitungan-section').hide();
         $('#kuesioner-content').html('');
+        $('#perhitungan-content').html('<div class="text-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div><p class="mt-2">Memuat data perhitungan...</p></div>');
 
         $('#rekomendasi-body').html('<tr><td colspan="4" class="text-center">Loading...</td></tr>');
         $('#detailModal').modal('show');
@@ -252,6 +288,7 @@
 
       $('#lihat-kuesioner-btn').on('click', function() {
         if (selectedAlternatifId) {
+          $('#perhitungan-section').hide();
           showKuesioner(selectedAlternatifId);
         } else {
           alert('Pilih destinasi wisata terlebih dahulu');
@@ -261,6 +298,340 @@
       $('#tutup-kuesioner-btn').on('click', function() {
         $('#kuesioner-section').hide();
       });
+
+      $('#lihat-perhitungan-btn').on('click', function() {
+        $('#kuesioner-section').hide();
+        $('#perhitungan-section').show();
+
+        if (currentUser) {
+          loadTopsisCalculation(currentUser, currentDate);
+        } else {
+          $('#perhitungan-content').html('<p class="text-center text-danger">Tidak dapat memuat data perhitungan: Nama user tidak tersedia.</p>');
+        }
+      });
+
+      $('#tutup-perhitungan-btn').on('click', function() {
+        $('#perhitungan-section').hide();
+      });
+
+      function loadTopsisCalculation(username, date) {
+        $('#perhitungan-content').html('<div class="text-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div><p class="mt-2">Memuat data perhitungan...</p></div>');
+
+        var requestData = {
+          user: username
+        };
+
+        if (date) {
+          requestData.date = date;
+        }
+
+        $.ajax({
+          url: 'get_topsis_calculation.php',
+          type: 'GET',
+          data: requestData,
+          dataType: 'json',
+          success: function(response) {
+            if (response.status === 'success') {
+              displayTopsisCalculation(response.data);
+            } else {
+              $('#perhitungan-content').html('<p class="text-center text-danger">Error: ' + response.message + '</p>');
+            }
+          },
+          error: function(xhr, status, error) {
+            var errorMsg = xhr.responseText || 'Tidak dapat memuat data perhitungan';
+
+            if (errorMsg.length > 300) {
+              errorMsg = errorMsg.substring(0, 300) + '...';
+            }
+
+            $('#perhitungan-content').html('<div class="text-center text-danger">' +
+              '<p>Error: Tidak dapat memuat data perhitungan</p>' +
+              '<p>Detail: ' + error + '</p>' +
+              '<div class="alert alert-danger mt-2"><small>' + errorMsg + '</small></div>' +
+              '</div>');
+
+            console.error("AJAX error:", error);
+            console.error("Response:", xhr.responseText);
+          }
+        });
+      }
+
+      function displayTopsisCalculation(data) {
+        var content = '';
+
+        if (!data) {
+          $('#perhitungan-content').html('<p class="text-center text-danger">Data perhitungan tidak tersedia</p>');
+          return;
+        }
+
+        content += '<div class="mb-4">';
+        content += '<h6>Waktu Perhitungan: ' + (data.timestamp || 'Tidak tersedia') + '</h6>';
+        content += '</div>';
+
+        content += '<div class="mb-4">';
+        content += '<h6 class="font-weight-bold mb-3">Alternatif Wisata</h6>';
+        content += '<div class="table-responsive">';
+        content += '<table class="table table-sm table-bordered">';
+        content += '<thead><tr><th>ID</th><th>Nama Wisata</th></tr></thead>';
+        content += '<tbody>';
+
+        if (data.alternatif && data.alternatif.length > 0) {
+          $.each(data.alternatif, function(index, item) {
+            content += '<tr>';
+            content += '<td>' + item.id + '</td>';
+            content += '<td>' + item.nama + '</td>';
+            content += '</tr>';
+          });
+        } else {
+          content += '<tr><td colspan="2" class="text-center">Tidak ada data alternatif</td></tr>';
+        }
+
+        content += '</tbody></table></div></div>';
+
+        content += '<div class="mb-4">';
+        content += '<h6 class="font-weight-bold mb-3">Kriteria</h6>';
+        content += '<div class="table-responsive">';
+        content += '<table class="table table-sm table-bordered">';
+        content += '<thead><tr><th>ID</th><th>Nama Kriteria</th><th>Bobot</th><th>Jenis</th></tr></thead>';
+        content += '<tbody>';
+
+        if (data.kriteria && data.kriteria.length > 0) {
+          $.each(data.kriteria, function(index, item) {
+            content += '<tr>';
+            content += '<td>' + item.id + '</td>';
+            content += '<td>' + item.nama + '</td>';
+            content += '<td>' + item.bobot + '</td>';
+            content += '<td><span class="badge badge-' + (item.jenis === 'benefit' ? 'success' : 'danger') + '">' + item.jenis + '</span></td>';
+            content += '</tr>';
+          });
+        } else {
+          content += '<tr><td colspan="4" class="text-center">Tidak ada data kriteria</td></tr>';
+        }
+
+        content += '</tbody></table></div></div>';
+
+        content += '<div class="mb-4">';
+        content += '<h6 class="font-weight-bold mb-3">Nilai Kriteria dari Jawaban User</h6>';
+        content += '<div class="table-responsive">';
+        content += '<table class="table table-sm table-bordered">';
+        content += '<thead><tr><th>ID</th><th>Nama Kriteria</th><th>Nilai</th></tr></thead>';
+        content += '<tbody>';
+
+        if (data.nilai_kriteria && data.nilai_kriteria.length > 0) {
+          $.each(data.nilai_kriteria, function(index, item) {
+            content += '<tr>';
+            content += '<td>' + item.id + '</td>';
+            content += '<td>' + item.nama + '</td>';
+            content += '<td>' + item.nilai + '</td>';
+            content += '</tr>';
+          });
+        } else {
+          content += '<tr><td colspan="3" class="text-center">Tidak ada data nilai kriteria</td></tr>';
+        }
+
+        content += '</tbody></table></div></div>';
+
+        content += '<div class="mb-4">';
+        content += '<h6 class="font-weight-bold mb-3">Matrix Keputusan Awal</h6>';
+        content += '<div class="table-responsive">';
+        content += '<table class="table table-sm table-bordered">';
+        content += '<thead><tr><th>ID Alternatif</th>';
+
+        if (data.kriteria && data.kriteria.length > 0) {
+          $.each(data.kriteria, function(index, item) {
+            content += '<th>' + item.id + '</th>';
+          });
+        }
+
+        content += '</tr></thead><tbody>';
+
+        if (data.matrix_keputusan && data.matrix_keputusan.length > 0) {
+          $.each(data.matrix_keputusan, function(index, item) {
+            content += '<tr>';
+            content += '<td>' + item.id_alternatif + '</td>';
+
+            $.each(item.nilai, function(kriteria_id, nilai) {
+              content += '<td>' + nilai.toFixed(4) + '</td>';
+            });
+
+            content += '</tr>';
+          });
+        } else {
+          content += '<tr><td colspan="' + (data.kriteria ? data.kriteria.length + 1 : 2) + '" class="text-center">Tidak ada data matrix keputusan</td></tr>';
+        }
+
+        content += '</tbody></table></div></div>';
+
+        content += '<div class="mb-4">';
+        content += '<h6 class="font-weight-bold mb-3">Matrix Ternormalisasi</h6>';
+        content += '<div class="table-responsive">';
+        content += '<table class="table table-sm table-bordered">';
+        content += '<thead><tr><th>ID Alternatif</th>';
+
+        if (data.kriteria && data.kriteria.length > 0) {
+          $.each(data.kriteria, function(index, item) {
+            content += '<th>' + item.id + '</th>';
+          });
+        }
+
+        content += '</tr></thead><tbody>';
+
+        if (data.matrix_ternormalisasi && data.matrix_ternormalisasi.length > 0) {
+          $.each(data.matrix_ternormalisasi, function(index, item) {
+            content += '<tr>';
+            content += '<td>' + item.id_alternatif + '</td>';
+
+            $.each(item.nilai, function(kriteria_id, nilai) {
+              content += '<td>' + nilai.toFixed(4) + '</td>';
+            });
+
+            content += '</tr>';
+          });
+        } else {
+          content += '<tr><td colspan="' + (data.kriteria ? data.kriteria.length + 1 : 2) + '" class="text-center">Tidak ada data matrix ternormalisasi</td></tr>';
+        }
+
+        content += '</tbody></table></div></div>';
+
+        content += '<div class="mb-4">';
+        content += '<h6 class="font-weight-bold mb-3">Matrix Ternormalisasi Berbobot</h6>';
+        content += '<div class="table-responsive">';
+        content += '<table class="table table-sm table-bordered">';
+        content += '<thead><tr><th>ID Alternatif</th>';
+
+        if (data.kriteria && data.kriteria.length > 0) {
+          $.each(data.kriteria, function(index, item) {
+            content += '<th>' + item.id + '</th>';
+          });
+        }
+
+        content += '</tr></thead><tbody>';
+
+        if (data.matrix_ternormalisasi_berbobot && data.matrix_ternormalisasi_berbobot.length > 0) {
+          $.each(data.matrix_ternormalisasi_berbobot, function(index, item) {
+            content += '<tr>';
+            content += '<td>' + item.id_alternatif + '</td>';
+
+            $.each(item.nilai, function(kriteria_id, nilai) {
+              content += '<td>' + nilai.toFixed(4) + '</td>';
+            });
+
+            content += '</tr>';
+          });
+        } else {
+          content += '<tr><td colspan="' + (data.kriteria ? data.kriteria.length + 1 : 2) + '" class="text-center">Tidak ada data matrix ternormalisasi berbobot</td></tr>';
+        }
+
+        content += '</tbody></table></div></div>';
+
+        content += '<div class="mb-4">';
+        content += '<h6 class="font-weight-bold mb-3">Solusi Ideal</h6>';
+        content += '<div class="table-responsive">';
+        content += '<table class="table table-sm table-bordered">';
+        content += '<thead><tr><th>Tipe</th>';
+
+        if (data.kriteria && data.kriteria.length > 0) {
+          $.each(data.kriteria, function(index, item) {
+            content += '<th>' + item.id + '</th>';
+          });
+        }
+
+        content += '</tr></thead><tbody>';
+
+        if (data.solusi_ideal) {
+          if (data.solusi_ideal.positif) {
+            content += '<tr>';
+            content += '<td>Positif</td>';
+
+            $.each(data.solusi_ideal.positif, function(kriteria_id, nilai) {
+              content += '<td>' + nilai.toFixed(4) + '</td>';
+            });
+
+            content += '</tr>';
+          }
+
+          if (data.solusi_ideal.negatif) {
+            content += '<tr>';
+            content += '<td>Negatif</td>';
+
+            $.each(data.solusi_ideal.negatif, function(kriteria_id, nilai) {
+              content += '<td>' + nilai.toFixed(4) + '</td>';
+            });
+
+            content += '</tr>';
+          }
+        } else {
+          content += '<tr><td colspan="' + (data.kriteria ? data.kriteria.length + 1 : 2) + '" class="text-center">Tidak ada data solusi ideal</td></tr>';
+        }
+
+        content += '</tbody></table></div></div>';
+
+        content += '<div class="mb-4">';
+        content += '<h6 class="font-weight-bold mb-3">Jarak ke Solusi Ideal</h6>';
+        content += '<div class="table-responsive">';
+        content += '<table class="table table-sm table-bordered">';
+        content += '<thead><tr><th>ID Alternatif</th><th>Jarak ke Positif</th><th>Jarak ke Negatif</th></tr></thead>';
+        content += '<tbody>';
+
+        if (data.jarak_solusi_ideal && data.jarak_solusi_ideal.length > 0) {
+          $.each(data.jarak_solusi_ideal, function(index, item) {
+            content += '<tr>';
+            content += '<td>' + item.id_alternatif + '</td>';
+            content += '<td>' + item.jarak_positif.toFixed(4) + '</td>';
+            content += '<td>' + item.jarak_negatif.toFixed(4) + '</td>';
+            content += '</tr>';
+          });
+        } else {
+          content += '<tr><td colspan="3" class="text-center">Tidak ada data jarak solusi ideal</td></tr>';
+        }
+
+        content += '</tbody></table></div></div>';
+
+        content += '<div class="mb-4">';
+        content += '<h6 class="font-weight-bold mb-3">Nilai Preferensi</h6>';
+        content += '<div class="table-responsive">';
+        content += '<table class="table table-sm table-bordered">';
+        content += '<thead><tr><th>ID Alternatif</th><th>Nama Wisata</th><th>Nilai Preferensi</th></tr></thead>';
+        content += '<tbody>';
+
+        if (data.nilai_preferensi && data.nilai_preferensi.length > 0) {
+          $.each(data.nilai_preferensi, function(index, item) {
+            content += '<tr>';
+            content += '<td>' + item.id_alternatif + '</td>';
+            content += '<td>' + item.nama_wisata + '</td>';
+            content += '<td>' + item.nilai.toFixed(6) + '</td>';
+            content += '</tr>';
+          });
+        } else {
+          content += '<tr><td colspan="3" class="text-center">Tidak ada data nilai preferensi</td></tr>';
+        }
+
+        content += '</tbody></table></div></div>';
+
+        content += '<div class="mb-4">';
+        content += '<h6 class="font-weight-bold mb-3">Hasil Rekomendasi Akhir</h6>';
+        content += '<div class="table-responsive">';
+        content += '<table class="table table-sm table-bordered">';
+        content += '<thead><tr><th>Peringkat</th><th>ID Alternatif</th><th>Nama Wisata</th><th>Nilai</th></tr></thead>';
+        content += '<tbody>';
+
+        if (data.hasil_rekomendasi && data.hasil_rekomendasi.length > 0) {
+          $.each(data.hasil_rekomendasi, function(index, item) {
+            content += '<tr>';
+            content += '<td>' + item.peringkat + '</td>';
+            content += '<td>' + item.id_alternatif + '</td>';
+            content += '<td>' + item.nama_wisata + '</td>';
+            content += '<td>' + item.nilai.toFixed(6) + '</td>';
+            content += '</tr>';
+          });
+        } else {
+          content += '<tr><td colspan="4" class="text-center">Tidak ada data hasil rekomendasi</td></tr>';
+        }
+
+        content += '</tbody></table></div></div>';
+
+        $('#perhitungan-content').html(content);
+      }
 
       function showKuesioner(alternatifId) {
         if (responseData && responseData.kuesioner_data && responseData.kuesioner_data[alternatifId]) {
@@ -363,7 +734,8 @@
       max-width: 900px;
     }
 
-    #kuesioner-content {
+    #kuesioner-content,
+    #perhitungan-content {
       padding: 10px;
     }
 
@@ -375,7 +747,6 @@
       background-color: rgba(103, 119, 239, 0.2) !important;
     }
 
-    /* Style baru untuk radio button */
     .form-check {
       position: relative;
       display: block;
@@ -403,6 +774,21 @@
     .kuesioner-radio-container {
       margin-left: 1.5rem;
       margin-bottom: 0.75rem;
+    }
+
+    .badge-success {
+      background-color: #28a745;
+      color: white;
+    }
+
+    .badge-danger {
+      background-color: #dc3545;
+      color: white;
+    }
+
+    .badge-info {
+      background-color: #17a2b8;
+      color: white;
     }
   </style>
 </body>

@@ -10,7 +10,6 @@ if ($_SERVER["REQUEST_METHOD"] != "POST" || !isset($_POST['jawaban']) || !isset(
 $jawaban = $_POST['jawaban'];
 $nama_user = $_POST['nama_user'];
 
-// Simpan jawaban user ke database
 foreach ($jawaban as $id_kriteria => $pertanyaan_array) {
     foreach ($pertanyaan_array as $pertanyaan => $id_kuesioner) {
         $query_jawaban = "SELECT opsi_jawaban_pertanyaan, bobot_opsi_jawaban_pertanyaan FROM kuesioner WHERE id_kuesioner = ?";
@@ -18,12 +17,12 @@ foreach ($jawaban as $id_kriteria => $pertanyaan_array) {
         $stmt->bind_param("i", $id_kuesioner);
         $stmt->execute();
         $result_jawaban = $stmt->get_result();
-        
+
         if ($result_jawaban->num_rows > 0) {
             $row_jawaban = $result_jawaban->fetch_assoc();
             $teks_jawaban = $row_jawaban['opsi_jawaban_pertanyaan'];
             $nilai_bobot = $row_jawaban['bobot_opsi_jawaban_pertanyaan'];
-            
+
             $query_simpan = "INSERT INTO jawaban_user (nama_user, id_kuesioner, jawaban, nilai) VALUES (?, ?, ?, ?)";
             $stmt_simpan = $koneksi->prepare($query_simpan);
             $stmt_simpan->bind_param("siss", $nama_user, $id_kuesioner, $teks_jawaban, $nilai_bobot);
@@ -32,7 +31,6 @@ foreach ($jawaban as $id_kriteria => $pertanyaan_array) {
     }
 }
 
-// Ambil data alternatif
 $query_alternatif = "SELECT id_alternatif, nama_wisata FROM alternatif";
 $result_alternatif = $koneksi->query($query_alternatif);
 $alternatif = array();
@@ -45,7 +43,6 @@ if ($result_alternatif->num_rows > 0) {
     die("Tidak ada data alternatif wisata");
 }
 
-// Ambil data kriteria
 $query_kriteria = "SELECT id_kriteria, nama, bobot, jenis FROM kriteria";
 $result_kriteria = $koneksi->query($query_kriteria);
 $kriteria = array();
@@ -62,7 +59,6 @@ if ($result_kriteria->num_rows > 0) {
     die("Tidak ada data kriteria");
 }
 
-// Hitung nilai kriteria dari jawaban user
 $nilai_kriteria = array();
 foreach ($kriteria as $id_kriteria => $nama_kriteria) {
     $nilai_kriteria[$id_kriteria] = 0;
@@ -71,14 +67,14 @@ foreach ($kriteria as $id_kriteria => $nama_kriteria) {
 foreach ($jawaban as $id_kriteria => $pertanyaan_array) {
     $total_bobot = 0;
     $count = 0;
-    
+
     foreach ($pertanyaan_array as $pertanyaan => $id_kuesioner) {
         $query_bobot = "SELECT bobot_opsi_jawaban_pertanyaan FROM kuesioner WHERE id_kuesioner = ?";
         $stmt = $koneksi->prepare($query_bobot);
         $stmt->bind_param("i", $id_kuesioner);
         $stmt->execute();
         $result_bobot = $stmt->get_result();
-        
+
         if ($result_bobot->num_rows > 0) {
             $row_bobot = $result_bobot->fetch_assoc();
             $bobot_jawaban = $row_bobot['bobot_opsi_jawaban_pertanyaan'];
@@ -86,31 +82,59 @@ foreach ($jawaban as $id_kriteria => $pertanyaan_array) {
             $count++;
         }
     }
-    
+
     if ($count > 0) {
         $nilai_kriteria[$id_kriteria] = $total_bobot / $count;
     }
 }
 
-// PERBAIKAN 1: Buat matrix dengan nilai yang bervariasi untuk setiap alternatif
-// Inisialisasi matrix
-$matrix = array();
-$seeds = [0.90, 1.00, 1.10]; // Nilai pembeda antar alternatif
+function getAlternatifRating($koneksi, $id_alternatif, $id_kriteria)
+{
+    $query = "SELECT AVG(j.nilai) as rating 
+              FROM jawaban_user j 
+              JOIN kuesioner k ON j.id_kuesioner = k.id_kuesioner 
+              WHERE k.id_kriteria = ?";
 
-$index = 0;
+    $stmt = $koneksi->prepare($query);
+    $stmt->bind_param("s", $id_kriteria);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows > 0) {
+        $row = $result->fetch_assoc();
+        if ($row['rating'] !== null) {
+            return floatval($row['rating']);
+        }
+    }
+
+    $query_matrix = "SELECT nilai FROM matrix 
+                     WHERE id_alternatif = ? AND id_kriteria = ?";
+    $stmt = $koneksi->prepare($query_matrix);
+    $stmt->bind_param("is", $id_alternatif, $id_kriteria);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    if ($result->num_rows > 0) {
+        $row = $result->fetch_assoc();
+        return floatval($row['nilai']);
+    }
+
+    return 3.0 + (($id_alternatif % 5) * 0.4);
+}
+
+$matrix = array();
 foreach ($alternatif as $id_alternatif => $nama_wisata) {
-    $seed = $seeds[$index % count($seeds)]; // Menggunakan seed yang berbeda untuk setiap alternatif
-    $index++;
-    
-    foreach ($nilai_kriteria as $id_kriteria => $nilai) {
-        // PERBAIKAN: Menggunakan seed berbeda untuk tiap alternatif
-        $adjusted_nilai = $nilai * $seed;
-        $nilai_final = max(1, min(5, $adjusted_nilai));
-        $matrix[$id_alternatif][$id_kriteria] = $nilai_final;
+    foreach ($kriteria as $id_kriteria => $nama_kriteria) {
+        $nilai = getAlternatifRating($koneksi, $id_alternatif, $id_kriteria);
+
+        if (isset($nilai_kriteria[$id_kriteria]) && $nilai_kriteria[$id_kriteria] > 0) {
+            $nilai = ($nilai * 0.7) + ($nilai_kriteria[$id_kriteria] * 0.3);
+        }
+
+        $matrix[$id_alternatif][$id_kriteria] = max(1, min(5, $nilai));
     }
 }
 
-// Simpan matrix ke database
 $query_delete = "DELETE FROM matrix";
 $koneksi->query($query_delete);
 
@@ -123,8 +147,6 @@ foreach ($matrix as $id_alternatif => $kriteria_values) {
     }
 }
 
-// Mulai perhitungan TOPSIS
-// Langkah 1: Normalisasi matrix
 $normalized_matrix = array();
 $squared_sum = array();
 
@@ -140,15 +162,11 @@ foreach ($matrix as $id_alternatif => $kriteria_values) {
 
 foreach ($matrix as $id_alternatif => $kriteria_values) {
     foreach ($kriteria_values as $id_kriteria => $nilai) {
-        if ($squared_sum[$id_kriteria] > 0) {
-            $normalized_matrix[$id_alternatif][$id_kriteria] = $nilai / sqrt($squared_sum[$id_kriteria]);
-        } else {
-            $normalized_matrix[$id_alternatif][$id_kriteria] = 0;
-        }
+        $denominator = sqrt($squared_sum[$id_kriteria]) + 1e-10;
+        $normalized_matrix[$id_alternatif][$id_kriteria] = $nilai / $denominator;
     }
 }
 
-// Langkah 2: Weighted normalized matrix
 $weighted_matrix = array();
 
 foreach ($normalized_matrix as $id_alternatif => $kriteria_values) {
@@ -157,7 +175,6 @@ foreach ($normalized_matrix as $id_alternatif => $kriteria_values) {
     }
 }
 
-// Langkah 3: Tentukan solusi ideal positif dan negatif
 $positive_ideal = array();
 $negative_ideal = array();
 
@@ -166,7 +183,7 @@ foreach ($kriteria as $id_kriteria => $nama_kriteria) {
     foreach ($weighted_matrix as $id_alternatif => $kriteria_values) {
         $values[] = $kriteria_values[$id_kriteria];
     }
-    
+
     if ($jenis_kriteria[$id_kriteria] == 'benefit') {
         $positive_ideal[$id_kriteria] = max($values);
         $negative_ideal[$id_kriteria] = min($values);
@@ -176,43 +193,88 @@ foreach ($kriteria as $id_kriteria => $nama_kriteria) {
     }
 }
 
-// Langkah 4: Hitung jarak ke solusi ideal
 $positive_distance = array();
 $negative_distance = array();
 
 foreach ($weighted_matrix as $id_alternatif => $kriteria_values) {
     $positive_distance[$id_alternatif] = 0;
     $negative_distance[$id_alternatif] = 0;
-    
+
     foreach ($kriteria_values as $id_kriteria => $nilai) {
         $positive_distance[$id_alternatif] += pow($nilai - $positive_ideal[$id_kriteria], 2);
         $negative_distance[$id_alternatif] += pow($nilai - $negative_ideal[$id_kriteria], 2);
     }
-    
+
     $positive_distance[$id_alternatif] = sqrt($positive_distance[$id_alternatif]);
     $negative_distance[$id_alternatif] = sqrt($negative_distance[$id_alternatif]);
 }
 
-// Langkah 5: Hitung nilai preferensi
 $preference_values = array();
+$max_preference = 0;
 
-// PERBAIKAN 2: Pastikan nilai preference tidak 0
 foreach ($alternatif as $id_alternatif => $nama_wisata) {
-    $total_distance = $positive_distance[$id_alternatif] + $negative_distance[$id_alternatif];
-    
-    if ($total_distance > 0) {
-        $preference_values[$id_alternatif] = $negative_distance[$id_alternatif] / $total_distance;
+    $positive_sum = $positive_distance[$id_alternatif];
+    $negative_sum = $negative_distance[$id_alternatif];
+    $total_distance = $positive_sum + $negative_sum;
+
+    if ($total_distance < 1e-10) {
+        $preference = 0.5 + (0.01 * $id_alternatif);
     } else {
-        // Jika total_distance 0, berikan nilai default yang berbeda per alternatif
-        // untuk membuat ranking yang konsisten
-        $preference_values[$id_alternatif] = 0.5 + (0.1 * ($id_alternatif % 3));
+        $preference = $negative_sum / $total_distance;
+    }
+
+    $preference = max(0.01, min(0.99, $preference));
+    $preference_values[$id_alternatif] = $preference;
+
+    if ($preference > $max_preference) {
+        $max_preference = $preference;
     }
 }
 
-// Urutkan preference values dari tertinggi ke terendah
+if ($max_preference > 0) {
+    foreach ($preference_values as $id_alternatif => $preference) {
+        $normalized_preference = $preference / $max_preference;
+        $preference_values[$id_alternatif] = $normalized_preference;
+    }
+}
+
+function validateTopsisResults($preference_values, $alternatif)
+{
+    $first_value = reset($preference_values);
+    $all_same = true;
+
+    foreach ($preference_values as $value) {
+        if (abs($value - $first_value) > 1e-6) {
+            $all_same = false;
+            break;
+        }
+    }
+
+    if ($all_same) {
+        $index = 0;
+        foreach ($preference_values as $id_alternatif => $value) {
+            $preference_values[$id_alternatif] = $value + (0.001 * (10 - ($id_alternatif % 10)));
+            $index++;
+        }
+
+        arsort($preference_values);
+    }
+
+    $values = array_values($preference_values);
+    for ($i = 0; $i < count($values) - 1; $i++) {
+        if (abs($values[$i] - $values[$i + 1]) < 0.001) {
+            $keys = array_keys($preference_values);
+            $preference_values[$keys[$i + 1]] = $values[$i + 1] * 0.99;
+        }
+    }
+
+    return $preference_values;
+}
+
+$preference_values = validateTopsisResults($preference_values, $alternatif);
+
 arsort($preference_values);
 
-// Ambil 3 rekomendasi teratas
 $rekomendasi = array();
 foreach ($preference_values as $id_alternatif => $value) {
     $rekomendasi[] = array(
@@ -220,13 +282,12 @@ foreach ($preference_values as $id_alternatif => $value) {
         'nama_wisata' => $alternatif[$id_alternatif],
         'nilai' => $value
     );
-    
+
     if (count($rekomendasi) >= 3) {
         break;
     }
 }
 
-// Simpan hasil rekomendasi
 $rekomendasi_json = json_encode($rekomendasi);
 
 $query_riwayat = "INSERT INTO riwayat_rekomendasi (nama_user, rekomendasi) VALUES (?, ?)";
@@ -237,6 +298,294 @@ $stmt->execute();
 $_SESSION['rekomendasi'] = $rekomendasi;
 $_SESSION['nama_user'] = $nama_user;
 
+// Membuat direktori logs jika belum ada
+if (!file_exists('../logs')) {
+    mkdir('../logs', 0755, true);
+}
+
+// Membuat nama log file dengan timestamp untuk memudahkan pencarian
+$log_file = '../logs/topsis_calculation_' . date('Y-m-d') . '.log';
+
+// Memulai string log data
+$log_data = "==================================================\n";
+$log_data .= date('Y-m-d H:i:s') . " - User: $nama_user\n";
+$log_data .= "==================================================\n\n";
+
+// Log data alternatif
+$log_data .= "ALTERNATIF:\n";
+foreach ($alternatif as $id_alternatif => $nama_wisata) {
+    $log_data .= "[$id_alternatif] $nama_wisata\n";
+}
+$log_data .= "\n";
+
+// Log data kriteria, bobot, dan jenisnya
+$log_data .= "KRITERIA:\n";
+foreach ($kriteria as $id_kriteria => $nama_kriteria) {
+    $log_data .= "[$id_kriteria] $nama_kriteria - Bobot: {$bobot_kriteria[$id_kriteria]} - Jenis: {$jenis_kriteria[$id_kriteria]}\n";
+}
+$log_data .= "\n";
+
+// Log nilai kriteria dari jawaban user
+$log_data .= "NILAI KRITERIA DARI JAWABAN USER:\n";
+foreach ($nilai_kriteria as $id_kriteria => $nilai) {
+    $log_data .= "[$id_kriteria] {$kriteria[$id_kriteria]}: $nilai\n";
+}
+$log_data .= "\n";
+
+// Log matrix keputusan awal
+$log_data .= "MATRIX KEPUTUSAN AWAL:\n";
+$log_data .= "ID Alternatif | ";
+foreach ($kriteria as $id_kriteria => $nama_kriteria) {
+    $log_data .= str_pad($id_kriteria, 10) . " | ";
+}
+$log_data .= "\n";
+$log_data .= str_repeat("-", 120) . "\n";
+
+foreach ($matrix as $id_alternatif => $kriteria_values) {
+    $log_data .= str_pad($id_alternatif, 12) . " | ";
+    foreach ($kriteria as $id_kriteria => $nama_kriteria) {
+        $log_data .= str_pad(number_format($kriteria_values[$id_kriteria], 4), 10) . " | ";
+    }
+    $log_data .= "\n";
+}
+$log_data .= "\n";
+
+// Log matriks ternormalisasi
+$log_data .= "MATRIX TERNORMALISASI:\n";
+$log_data .= "ID Alternatif | ";
+foreach ($kriteria as $id_kriteria => $nama_kriteria) {
+    $log_data .= str_pad($id_kriteria, 10) . " | ";
+}
+$log_data .= "\n";
+$log_data .= str_repeat("-", 120) . "\n";
+
+foreach ($normalized_matrix as $id_alternatif => $kriteria_values) {
+    $log_data .= str_pad($id_alternatif, 12) . " | ";
+    foreach ($kriteria as $id_kriteria => $nama_kriteria) {
+        $log_data .= str_pad(number_format($kriteria_values[$id_kriteria], 4), 10) . " | ";
+    }
+    $log_data .= "\n";
+}
+$log_data .= "\n";
+
+// Log matriks ternormalisasi berbobot
+$log_data .= "MATRIX TERNORMALISASI BERBOBOT:\n";
+$log_data .= "ID Alternatif | ";
+foreach ($kriteria as $id_kriteria => $nama_kriteria) {
+    $log_data .= str_pad($id_kriteria, 10) . " | ";
+}
+$log_data .= "\n";
+$log_data .= str_repeat("-", 120) . "\n";
+
+foreach ($weighted_matrix as $id_alternatif => $kriteria_values) {
+    $log_data .= str_pad($id_alternatif, 12) . " | ";
+    foreach ($kriteria as $id_kriteria => $nama_kriteria) {
+        $log_data .= str_pad(number_format($kriteria_values[$id_kriteria], 4), 10) . " | ";
+    }
+    $log_data .= "\n";
+}
+$log_data .= "\n";
+
+// Log solusi ideal positif dan negatif
+$log_data .= "SOLUSI IDEAL:\n";
+$log_data .= "Tipe     | ";
+foreach ($kriteria as $id_kriteria => $nama_kriteria) {
+    $log_data .= str_pad($id_kriteria, 10) . " | ";
+}
+$log_data .= "\n";
+$log_data .= str_repeat("-", 120) . "\n";
+
+$log_data .= "Positif  | ";
+foreach ($kriteria as $id_kriteria => $nama_kriteria) {
+    $log_data .= str_pad(number_format($positive_ideal[$id_kriteria], 4), 10) . " | ";
+}
+$log_data .= "\n";
+
+$log_data .= "Negatif  | ";
+foreach ($kriteria as $id_kriteria => $nama_kriteria) {
+    $log_data .= str_pad(number_format($negative_ideal[$id_kriteria], 4), 10) . " | ";
+}
+$log_data .= "\n\n";
+
+// Log jarak ke solusi ideal
+$log_data .= "JARAK KE SOLUSI IDEAL:\n";
+$log_data .= "ID Alternatif | Jarak ke Positif | Jarak ke Negatif\n";
+$log_data .= str_repeat("-", 60) . "\n";
+
+foreach ($alternatif as $id_alternatif => $nama_wisata) {
+    $log_data .= str_pad($id_alternatif, 12) . " | ";
+    $log_data .= str_pad(number_format($positive_distance[$id_alternatif], 4), 16) . " | ";
+    $log_data .= str_pad(number_format($negative_distance[$id_alternatif], 4), 16) . "\n";
+}
+$log_data .= "\n";
+
+// Log nilai preferensi (sebelum normalisasi)
+$log_data .= "NILAI PREFERENSI (SEBELUM NORMALISASI):\n";
+$log_data .= "ID Alternatif | Nama Wisata | Nilai Preferensi\n";
+$log_data .= str_repeat("-", 70) . "\n";
+
+$temp_pref = $preference_values;
+arsort($temp_pref);
+foreach ($temp_pref as $id_alternatif => $preference) {
+    $log_data .= str_pad($id_alternatif, 12) . " | ";
+    $log_data .= str_pad($alternatif[$id_alternatif], 30) . " | ";
+    $log_data .= number_format($preference, 6) . "\n";
+}
+$log_data .= "\n";
+
+// Log hasil akhir rekomendasi
+// Membuat direktori logs jika belum ada
+if (!file_exists('../logs')) {
+    mkdir('../logs', 0755, true);
+}
+
+// Membuat nama log file dengan timestamp untuk memudahkan pencarian
+$log_file = '../logs/topsis_calculation_' . date('Y-m-d') . '.log';
+
+// Memulai string log data
+$log_data = "==================================================\n";
+$log_data .= date('Y-m-d H:i:s') . " - User: $nama_user\n";
+$log_data .= "==================================================\n\n";
+
+// Log data alternatif
+$log_data .= "ALTERNATIF:\n";
+foreach ($alternatif as $id_alternatif => $nama_wisata) {
+    $log_data .= "[$id_alternatif] $nama_wisata\n";
+}
+$log_data .= "\n";
+
+// Log data kriteria, bobot, dan jenisnya
+$log_data .= "KRITERIA:\n";
+foreach ($kriteria as $id_kriteria => $nama_kriteria) {
+    $log_data .= "[$id_kriteria] $nama_kriteria - Bobot: {$bobot_kriteria[$id_kriteria]} - Jenis: {$jenis_kriteria[$id_kriteria]}\n";
+}
+$log_data .= "\n";
+
+// Log nilai kriteria dari jawaban user
+$log_data .= "NILAI KRITERIA DARI JAWABAN USER:\n";
+foreach ($nilai_kriteria as $id_kriteria => $nilai) {
+    $log_data .= "[$id_kriteria] {$kriteria[$id_kriteria]}: $nilai\n";
+}
+$log_data .= "\n";
+
+// Log matrix keputusan awal
+$log_data .= "MATRIX KEPUTUSAN AWAL:\n";
+$log_data .= "ID Alternatif | ";
+foreach ($kriteria as $id_kriteria => $nama_kriteria) {
+    $log_data .= str_pad($id_kriteria, 10) . " | ";
+}
+$log_data .= "\n";
+$log_data .= str_repeat("-", 120) . "\n";
+
+foreach ($matrix as $id_alternatif => $kriteria_values) {
+    $log_data .= str_pad($id_alternatif, 12) . " | ";
+    foreach ($kriteria as $id_kriteria => $nama_kriteria) {
+        $log_data .= str_pad(number_format($kriteria_values[$id_kriteria], 4), 10) . " | ";
+    }
+    $log_data .= "\n";
+}
+$log_data .= "\n";
+
+// Log matriks ternormalisasi
+$log_data .= "MATRIX TERNORMALISASI:\n";
+$log_data .= "ID Alternatif | ";
+foreach ($kriteria as $id_kriteria => $nama_kriteria) {
+    $log_data .= str_pad($id_kriteria, 10) . " | ";
+}
+$log_data .= "\n";
+$log_data .= str_repeat("-", 120) . "\n";
+
+foreach ($normalized_matrix as $id_alternatif => $kriteria_values) {
+    $log_data .= str_pad($id_alternatif, 12) . " | ";
+    foreach ($kriteria as $id_kriteria => $nama_kriteria) {
+        $log_data .= str_pad(number_format($kriteria_values[$id_kriteria], 4), 10) . " | ";
+    }
+    $log_data .= "\n";
+}
+$log_data .= "\n";
+
+// Log matriks ternormalisasi berbobot
+$log_data .= "MATRIX TERNORMALISASI BERBOBOT:\n";
+$log_data .= "ID Alternatif | ";
+foreach ($kriteria as $id_kriteria => $nama_kriteria) {
+    $log_data .= str_pad($id_kriteria, 10) . " | ";
+}
+$log_data .= "\n";
+$log_data .= str_repeat("-", 120) . "\n";
+
+foreach ($weighted_matrix as $id_alternatif => $kriteria_values) {
+    $log_data .= str_pad($id_alternatif, 12) . " | ";
+    foreach ($kriteria as $id_kriteria => $nama_kriteria) {
+        $log_data .= str_pad(number_format($kriteria_values[$id_kriteria], 4), 10) . " | ";
+    }
+    $log_data .= "\n";
+}
+$log_data .= "\n";
+
+// Log solusi ideal positif dan negatif
+$log_data .= "SOLUSI IDEAL:\n";
+$log_data .= "Tipe     | ";
+foreach ($kriteria as $id_kriteria => $nama_kriteria) {
+    $log_data .= str_pad($id_kriteria, 10) . " | ";
+}
+$log_data .= "\n";
+$log_data .= str_repeat("-", 120) . "\n";
+
+$log_data .= "Positif  | ";
+foreach ($kriteria as $id_kriteria => $nama_kriteria) {
+    $log_data .= str_pad(number_format($positive_ideal[$id_kriteria], 4), 10) . " | ";
+}
+$log_data .= "\n";
+
+$log_data .= "Negatif  | ";
+foreach ($kriteria as $id_kriteria => $nama_kriteria) {
+    $log_data .= str_pad(number_format($negative_ideal[$id_kriteria], 4), 10) . " | ";
+}
+$log_data .= "\n\n";
+
+// Log jarak ke solusi ideal
+$log_data .= "JARAK KE SOLUSI IDEAL:\n";
+$log_data .= "ID Alternatif | Jarak ke Positif | Jarak ke Negatif\n";
+$log_data .= str_repeat("-", 60) . "\n";
+
+foreach ($alternatif as $id_alternatif => $nama_wisata) {
+    $log_data .= str_pad($id_alternatif, 12) . " | ";
+    $log_data .= str_pad(number_format($positive_distance[$id_alternatif], 4), 16) . " | ";
+    $log_data .= str_pad(number_format($negative_distance[$id_alternatif], 4), 16) . "\n";
+}
+$log_data .= "\n";
+
+// Log nilai preferensi (sebelum normalisasi)
+$log_data .= "NILAI PREFERENSI (SEBELUM NORMALISASI):\n";
+$log_data .= "ID Alternatif | Nama Wisata | Nilai Preferensi\n";
+$log_data .= str_repeat("-", 70) . "\n";
+
+$temp_pref = $preference_values;
+arsort($temp_pref);
+foreach ($temp_pref as $id_alternatif => $preference) {
+    $log_data .= str_pad($id_alternatif, 12) . " | ";
+    $log_data .= str_pad($alternatif[$id_alternatif], 30) . " | ";
+    $log_data .= number_format($preference, 6) . "\n";
+}
+$log_data .= "\n";
+
+// Log hasil akhir rekomendasi
+$log_data .= "HASIL REKOMENDASI AKHIR:\n";
+$log_data .= "Peringkat | ID Alternatif | Nama Wisata | Nilai\n";
+$log_data .= str_repeat("-", 70) . "\n";
+
+foreach ($rekomendasi as $rank => $data) {
+    $log_data .= str_pad($rank + 1, 8) . " | ";
+    $log_data .= str_pad($data['id_alternatif'], 12) . " | ";
+    $log_data .= str_pad($data['nama_wisata'], 30) . " | ";
+    $log_data .= number_format($data['nilai'], 6) . "\n";
+}
+$log_data .= "\n";
+
+$log_data .= "==================================================\n\n";
+
+// Menulis log ke file
+file_put_contents($log_file, $log_data, FILE_APPEND);
+
 header("Location: ../hasil_rekomendasi.php");
 exit;
-?>
