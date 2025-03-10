@@ -88,8 +88,20 @@ foreach ($jawaban as $id_kriteria => $pertanyaan_array) {
     }
 }
 
-function getAlternatifRating($koneksi, $id_alternatif, $id_kriteria) {
-    // Mendapatkan nilai untuk alternatif dan kriteria spesifik dari tabel matrix
+function getAlternatifRating($koneksi, $id_alternatif, $id_kriteria)
+{
+    // Mendapatkan rata-rata jawaban user untuk kriteria tertentu
+    $query_user_avg = "SELECT AVG(nilai) as avg_user_rating 
+                       FROM jawaban_user ju
+                       JOIN kuesioner k ON ju.id_kuesioner = k.id_kuesioner
+                       WHERE k.id_kriteria = ?";
+    $stmt_user = $koneksi->prepare($query_user_avg);
+    $stmt_user->bind_param("s", $id_kriteria);
+    $stmt_user->execute();
+    $result_user = $stmt_user->get_result();
+    $user_avg = $result_user->fetch_assoc()['avg_user_rating'];
+
+    // Ambil nilai rating dari tabel matrix
     $query = "SELECT nilai FROM matrix WHERE id_alternatif = ? AND id_kriteria = ?";
     $stmt = $koneksi->prepare($query);
     $stmt->bind_param("is", $id_alternatif, $id_kriteria);
@@ -97,8 +109,28 @@ function getAlternatifRating($koneksi, $id_alternatif, $id_kriteria) {
     $result = $stmt->get_result();
 
     if ($result->num_rows > 0) {
-        $row = $result->fetch_assoc();
-        return floatval($row['nilai']);
+        $matrix_rating = $result->fetch_assoc()['nilai'];
+
+        // Gabungkan dengan rating user dengan bobot yang berbeda
+        // Misalnya 70% dari matrix dan 30% dari rating user
+        $final_rating = ($matrix_rating * 0.7) + ($user_avg * 0.3);
+
+        return max(1, min(5, $final_rating));
+    }
+
+    // Jika tidak ada data di matrix, gunakan rating user
+    return max(1, min(5, $user_avg));
+}
+
+// Modifikasi bagian kombinasi matriks
+$matrix = array();
+foreach ($alternatif as $id_alternatif => $nama_wisata) {
+    foreach ($kriteria as $id_kriteria => $nama_kriteria) {
+        // Gunakan fungsi baru untuk mendapatkan rating
+        $nilai = getAlternatifRating($koneksi, $id_alternatif, $id_kriteria);
+
+        // Pastikan nilai berada dalam range 1-5 dengan variasi
+        $matrix[$id_alternatif][$id_kriteria] = $nilai;
     }
 }
 
@@ -107,13 +139,13 @@ foreach ($alternatif as $id_alternatif => $nama_wisata) {
     foreach ($kriteria as $id_kriteria => $nama_kriteria) {
         // Ambil nilai rating dari database atau data pre-defined
         $nilai = getAlternatifRating($koneksi, $id_alternatif, $id_kriteria);
-        
+
         // Kombinasikan dengan jawaban user jika ada
         if (isset($nilai_kriteria[$id_kriteria]) && $nilai_kriteria[$id_kriteria] > 0) {
             // Berikan bobot 70% untuk data alternatif dan 30% untuk jawaban user
             $nilai = ($nilai * 0.7) + ($nilai_kriteria[$id_kriteria] * 0.3);
         }
-        
+
         // Pastikan nilai berada dalam range 1-5
         $matrix[$id_alternatif][$id_kriteria] = max(1, min(5, $nilai));
     }
@@ -222,7 +254,8 @@ if ($max_preference > 0) {
     }
 }
 
-function validateTopsisResults($preference_values, $alternatif) {
+function validateTopsisResults($preference_values, $alternatif)
+{
     $first_value = reset($preference_values);
     $all_same = true;
 
