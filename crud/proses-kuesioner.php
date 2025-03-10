@@ -89,88 +89,48 @@ foreach ($jawaban as $id_kriteria => $pertanyaan_array) {
 }
 
 function getAlternatifRating($koneksi, $id_alternatif, $id_kriteria) {
+    // Mendapatkan nilai untuk alternatif dan kriteria spesifik dari tabel matrix
     $query = "SELECT nilai FROM matrix WHERE id_alternatif = ? AND id_kriteria = ?";
     $stmt = $koneksi->prepare($query);
-    $stmt->bind_param("ss", $id_alternatif, $id_kriteria);
+    $stmt->bind_param("is", $id_alternatif, $id_kriteria);
     $stmt->execute();
     $result = $stmt->get_result();
 
     if ($result->num_rows > 0) {
         $row = $result->fetch_assoc();
         return floatval($row['nilai']);
-    } else {
-        // Menghasilkan nilai acak dalam rentang 3 - 5 agar tidak seragam
-        return round(mt_rand(30, 50) / 10, 2);
     }
 }
 
-
-// Pre-populate matrix with existing or default values
 $matrix = array();
-$has_existing_data = false;
-
 foreach ($alternatif as $id_alternatif => $nama_wisata) {
     foreach ($kriteria as $id_kriteria => $nama_kriteria) {
+        // Ambil nilai rating dari database atau data pre-defined
         $nilai = getAlternatifRating($koneksi, $id_alternatif, $id_kriteria);
-        if ($nilai) {
-            $has_existing_data = true;
-        }
-        $matrix[$id_alternatif][$id_kriteria] = $nilai;
-    }
-}
-
-// If we don't have existing data, use a sample dataset that guarantees different values
-if (!$has_existing_data) {
-    // Sample data for demonstration
-    $sample_data = [
-        1 => ['K001' => 4.2, 'K002' => 3.8, 'K003' => 4.5, 'K004' => 3.9, 'K005' => 4.1, 'K006' => 4.3],
-        2 => ['K001' => 3.8, 'K002' => 4.2, 'K003' => 3.5, 'K004' => 4.7, 'K005' => 3.9, 'K006' => 4.0],
-        3 => ['K001' => 4.5, 'K002' => 3.6, 'K003' => 3.8, 'K004' => 4.2, 'K005' => 4.6, 'K006' => 4.1],
-        4 => ['K001' => 4.0, 'K002' => 4.1, 'K003' => 3.7, 'K004' => 4.5, 'K005' => 3.6, 'K006' => 4.7],
-        5 => ['K001' => 3.9, 'K002' => 4.3, 'K003' => 4.0, 'K004' => 4.1, 'K005' => 4.3, 'K006' => 3.8]
-    ];
-    
-    foreach ($sample_data as $id_alternatif => $values) {
-        if (isset($alternatif[$id_alternatif])) {
-            foreach ($values as $id_kriteria => $nilai) {
-                if (isset($kriteria[$id_kriteria])) {
-                    $matrix[$id_alternatif][$id_kriteria] = $nilai;
-                }
-            }
-        }
-    }
-}
-
-// Apply user preferences to the matrix
-foreach ($alternatif as $id_alternatif => $nama_wisata) {
-    foreach ($kriteria as $id_kriteria => $nama_kriteria) {
+        
+        // Kombinasikan dengan jawaban user jika ada
         if (isset($nilai_kriteria[$id_kriteria]) && $nilai_kriteria[$id_kriteria] > 0) {
-            // Mix existing data (70%) with user preferences (30%)
-            $matrix[$id_alternatif][$id_kriteria] = ($matrix[$id_alternatif][$id_kriteria] * 0.7) + ($nilai_kriteria[$id_kriteria] * 0.3);
+            // Berikan bobot 70% untuk data alternatif dan 30% untuk jawaban user
+            $nilai = ($nilai * 0.7) + ($nilai_kriteria[$id_kriteria] * 0.3);
         }
         
-        // Ensure values are within range 1-5
-        $matrix[$id_alternatif][$id_kriteria] = max(1, min(5, $matrix[$id_alternatif][$id_kriteria]));
+        // Pastikan nilai berada dalam range 1-5
+        $matrix[$id_alternatif][$id_kriteria] = max(1, min(5, $nilai));
     }
 }
 
-// Clear existing matrix data
 $query_delete = "DELETE FROM matrix";
 $koneksi->query($query_delete);
 
-// Save the new matrix to database
 foreach ($matrix as $id_alternatif => $kriteria_values) {
     foreach ($kriteria_values as $id_kriteria => $nilai) {
-        if (isset($squared_sum[$id_kriteria])) {
-            $denominator = sqrt($squared_sum[$id_kriteria]) + 1e-10; // Hindari pembagian nol
-            $normalized_matrix[$id_alternatif][$id_kriteria] = $nilai / $denominator;
-        } else {
-            $normalized_matrix[$id_alternatif][$id_kriteria] = 0;
-        }
+        $query_insert = "INSERT INTO matrix (id_alternatif, id_kriteria, nilai) VALUES (?, ?, ?)";
+        $stmt = $koneksi->prepare($query_insert);
+        $stmt->bind_param("isd", $id_alternatif, $id_kriteria, $nilai);
+        $stmt->execute();
     }
 }
 
-// TOPSIS Step 1: Calculate normalized decision matrix
 $normalized_matrix = array();
 $squared_sum = array();
 
@@ -191,7 +151,6 @@ foreach ($matrix as $id_alternatif => $kriteria_values) {
     }
 }
 
-// TOPSIS Step 2: Calculate weighted normalized decision matrix
 $weighted_matrix = array();
 
 foreach ($normalized_matrix as $id_alternatif => $kriteria_values) {
@@ -200,7 +159,6 @@ foreach ($normalized_matrix as $id_alternatif => $kriteria_values) {
     }
 }
 
-// TOPSIS Step 3: Determine the positive and negative ideal solutions
 $positive_ideal = array();
 $negative_ideal = array();
 
@@ -219,7 +177,6 @@ foreach ($kriteria as $id_kriteria => $nama_kriteria) {
     }
 }
 
-// TOPSIS Step 4: Calculate separation measures
 $positive_distance = array();
 $negative_distance = array();
 
@@ -236,7 +193,6 @@ foreach ($weighted_matrix as $id_alternatif => $kriteria_values) {
     $negative_distance[$id_alternatif] = sqrt($negative_distance[$id_alternatif]);
 }
 
-// TOPSIS Step 5: Calculate the relative closeness to the ideal solution
 $preference_values = array();
 $max_preference = 0;
 
@@ -259,7 +215,6 @@ foreach ($alternatif as $id_alternatif => $nama_wisata) {
     }
 }
 
-// Normalize preference values
 if ($max_preference > 0) {
     foreach ($preference_values as $id_alternatif => $preference) {
         $normalized_preference = $preference / $max_preference;
@@ -267,7 +222,6 @@ if ($max_preference > 0) {
     }
 }
 
-// Ensure results are not all the same
 function validateTopsisResults($preference_values, $alternatif) {
     $first_value = reset($preference_values);
     $all_same = true;
@@ -302,10 +256,8 @@ function validateTopsisResults($preference_values, $alternatif) {
 
 $preference_values = validateTopsisResults($preference_values, $alternatif);
 
-// Sort by preference values (highest first)
 arsort($preference_values);
 
-// Get top 3 recommendations
 $rekomendasi = array();
 foreach ($preference_values as $id_alternatif => $value) {
     $rekomendasi[] = array(
@@ -319,7 +271,6 @@ foreach ($preference_values as $id_alternatif => $value) {
     }
 }
 
-// Save recommendations to database
 $rekomendasi_json = json_encode($rekomendasi);
 
 $query_riwayat = "INSERT INTO riwayat_rekomendasi (nama_user, rekomendasi) VALUES (?, ?)";
@@ -330,7 +281,6 @@ $stmt->execute();
 $_SESSION['rekomendasi'] = $rekomendasi;
 $_SESSION['nama_user'] = $nama_user;
 
-// Create logs directory if it doesn't exist
 if (!file_exists('../logs')) {
     mkdir('../logs', 0755, true);
 }
@@ -402,11 +352,12 @@ $log_data .= "\n";
 $log_data .= str_repeat("-", 120) . "\n";
 
 foreach ($weighted_matrix as $id_alternatif => $kriteria_values) {
-    foreach ($kriteria_values as $id_kriteria => $nilai) {
-        echo "Alternatif $id_alternatif - Kriteria $id_kriteria: " . number_format($nilai, 4) . "<br>";
+    $log_data .= str_pad($id_alternatif, 12) . " | ";
+    foreach ($kriteria as $id_kriteria => $nama_kriteria) {
+        $log_data .= str_pad(number_format($kriteria_values[$id_kriteria], 4), 10) . " | ";
     }
+    $log_data .= "\n";
 }
-
 $log_data .= "\n";
 
 $log_data .= "SOLUSI IDEAL:\n";
@@ -471,4 +422,3 @@ file_put_contents($log_file, $log_data, FILE_APPEND);
 
 header("Location: ../hasil_rekomendasi.php");
 exit;
-?>
