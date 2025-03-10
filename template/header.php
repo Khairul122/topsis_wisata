@@ -6,7 +6,7 @@
   <meta
     name="viewport"
     content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-  <title>Star Admin2</title>
+  <title>TOPSIS-PARIWISATA</title>
   <link rel="stylesheet" href="assets/vendors/feather/feather.css" />
   <link
     rel="stylesheet"
