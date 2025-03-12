@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Mar 09, 2025 at 09:40 AM
+-- Generation Time: Mar 12, 2025 at 09:13 PM
 -- Server version: 8.0.30
 -- PHP Version: 8.1.10
 
@@ -67,102 +67,38 @@ CREATE TABLE `jawaban_user` (
 --
 
 INSERT INTO `jawaban_user` (`id_jawaban`, `nama_user`, `id_kuesioner`, `jawaban`, `nilai`, `tanggal`) VALUES
-(65, 'Sari', 26, 'Mobil pribadi atau rental', '5.00', '2025-03-09 09:15:30'),
-(66, 'Sari', 31, 'Sangat mudah (jalan besar, mulus, bisa dilalui semua kendaraan)', '5.00', '2025-03-09 09:15:30'),
-(67, 'Sari', 36, 'Jalan mulus dan lebar, tidak ada kendala', '5.00', '2025-03-09 09:15:30'),
-(68, 'Sari', 41, 'Ya, tersedia bus/angkot dengan biaya murah', '5.00', '2025-03-09 09:15:30'),
-(69, 'Sari', 46, 'Ya, tersedia shuttle gratis dari pengelola wisata', '5.00', '2025-03-09 09:15:30'),
-(70, 'Sari', 76, 'Sangat Murah (< Rp 10.000)', '5.00', '2025-03-09 09:15:30'),
-(71, 'Sari', 81, 'Ya, semua kategori harga tersedia', '5.00', '2025-03-09 09:15:30'),
-(72, 'Sari', 86, 'Ya, diperbolehkan tanpa batasan', '5.00', '2025-03-09 09:15:30'),
-(73, 'Sari', 91, 'Banyak restoran dengan makanan berkualitas dan beragam', '5.00', '2025-03-09 09:15:30'),
-(74, 'Sari', 96, 'Sangat baik (standar kesehatan tinggi, pengawasan ketat)', '5.00', '2025-03-09 09:15:30'),
-(75, 'Sari', 101, 'Sangat murah (< Rp 100.000/malam)', '5.00', '2025-03-09 09:15:30'),
-(76, 'Sari', 106, 'Ya, tersedia untuk semua anggaran', '5.00', '2025-03-09 09:15:30'),
-(77, 'Sari', 111, 'Sangat baik (fasilitas lengkap & modern)', '5.00', '2025-03-09 09:15:30'),
-(78, 'Sari', 116, 'Ya, tersedia banyak pilihan paket wisata', '5.00', '2025-03-09 09:15:30'),
-(79, 'Sari', 121, 'Ya, tersedia banyak fasilitas tambahan', '5.00', '2025-03-09 09:15:30'),
-(80, 'Sari', 126, 'Sangat aman, tanpa ada risiko', '5.00', '2025-03-09 09:15:30'),
-(81, 'Sari', 131, 'Sangat aman, tidak ada kasus kriminal', '5.00', '2025-03-09 09:15:30'),
-(82, 'Sari', 136, 'Ya, tersedia petugas keamanan 24 jam', '5.00', '2025-03-09 09:15:30'),
-(83, 'Sari', 141, 'Sangat baik, ada prosedur darurat yang jelas', '5.00', '2025-03-09 09:15:30'),
-(84, 'Sari', 146, 'Ya, tersedia layanan lengkap', '5.00', '2025-03-09 09:15:30'),
-(85, 'Sari', 151, 'Tidak pernah ada kasus pungli', '5.00', '2025-03-09 09:15:30'),
-(86, 'Sari', 156, 'Tidak ada biaya tambahan yang tidak resmi', '5.00', '2025-03-09 09:15:30'),
-(87, 'Sari', 161, 'Sangat bersih dan terawat', '5.00', '2025-03-09 09:15:30'),
-(88, 'Sari', 166, 'Sangat cukup, tidak ada antrean', '5.00', '2025-03-09 09:15:30'),
-(89, 'Sari', 171, 'Gratis, tanpa biaya', '5.00', '2025-03-09 09:15:30'),
-(90, 'Sari', 176, 'Sangat lengkap (air bersih, sabun, tisu, pengharum, dll.)', '5.00', '2025-03-09 09:15:30'),
-(91, 'Sari', 181, 'Sangat cepat dan responsif', '5.00', '2025-03-09 09:15:30'),
-(92, 'Sari', 186, 'Sangat luas, tidak pernah penuh', '5.00', '2025-03-09 09:15:30'),
-(93, 'Sari', 191, 'Gratis, tidak ada biaya parkir', '5.00', '2025-03-09 09:15:30'),
-(94, 'Sari', 196, 'Sangat aman, ada CCTV dan petugas 24 jam', '5.00', '2025-03-09 09:15:30'),
-(95, 'Sari', 201, 'Tidak pernah terjadi kasus kehilangan', '5.00', '2025-03-09 09:15:30'),
-(96, 'Sari', 206, 'Sangat dekat, langsung ke area wisata', '5.00', '2025-03-09 09:15:30'),
-(97, 'Joko3', 26, 'Mobil pribadi atau rental', '5.00', '2025-03-09 09:19:09'),
-(98, 'Joko3', 31, 'Sangat mudah (jalan besar, mulus, bisa dilalui semua kendaraan)', '5.00', '2025-03-09 09:19:09'),
-(99, 'Joko3', 36, 'Jalan mulus dan lebar, tidak ada kendala', '5.00', '2025-03-09 09:19:09'),
-(100, 'Joko3', 41, 'Ya, tersedia bus/angkot dengan biaya murah', '5.00', '2025-03-09 09:19:09'),
-(101, 'Joko3', 46, 'Ya, tersedia shuttle gratis dari pengelola wisata', '5.00', '2025-03-09 09:19:09'),
-(102, 'Joko3', 76, 'Sangat Murah (< Rp 10.000)', '5.00', '2025-03-09 09:19:09'),
-(103, 'Joko3', 81, 'Ya, semua kategori harga tersedia', '5.00', '2025-03-09 09:19:09'),
-(104, 'Joko3', 86, 'Ya, diperbolehkan tanpa batasan', '5.00', '2025-03-09 09:19:09'),
-(105, 'Joko3', 91, 'Banyak restoran dengan makanan berkualitas dan beragam', '5.00', '2025-03-09 09:19:09'),
-(106, 'Joko3', 96, 'Sangat baik (standar kesehatan tinggi, pengawasan ketat)', '5.00', '2025-03-09 09:19:09'),
-(107, 'Joko3', 101, 'Sangat murah (< Rp 100.000/malam)', '5.00', '2025-03-09 09:19:09'),
-(108, 'Joko3', 106, 'Ya, tersedia untuk semua anggaran', '5.00', '2025-03-09 09:19:09'),
-(109, 'Joko3', 111, 'Sangat baik (fasilitas lengkap & modern)', '5.00', '2025-03-09 09:19:09'),
-(110, 'Joko3', 116, 'Ya, tersedia banyak pilihan paket wisata', '5.00', '2025-03-09 09:19:09'),
-(111, 'Joko3', 121, 'Ya, tersedia banyak fasilitas tambahan', '5.00', '2025-03-09 09:19:09'),
-(112, 'Joko3', 126, 'Sangat aman, tanpa ada risiko', '5.00', '2025-03-09 09:19:09'),
-(113, 'Joko3', 131, 'Sangat aman, tidak ada kasus kriminal', '5.00', '2025-03-09 09:19:09'),
-(114, 'Joko3', 136, 'Ya, tersedia petugas keamanan 24 jam', '5.00', '2025-03-09 09:19:09'),
-(115, 'Joko3', 141, 'Sangat baik, ada prosedur darurat yang jelas', '5.00', '2025-03-09 09:19:09'),
-(116, 'Joko3', 146, 'Ya, tersedia layanan lengkap', '5.00', '2025-03-09 09:19:09'),
-(117, 'Joko3', 151, 'Tidak pernah ada kasus pungli', '5.00', '2025-03-09 09:19:09'),
-(118, 'Joko3', 156, 'Tidak ada biaya tambahan yang tidak resmi', '5.00', '2025-03-09 09:19:09'),
-(119, 'Joko3', 161, 'Sangat bersih dan terawat', '5.00', '2025-03-09 09:19:09'),
-(120, 'Joko3', 166, 'Sangat cukup, tidak ada antrean', '5.00', '2025-03-09 09:19:09'),
-(121, 'Joko3', 171, 'Gratis, tanpa biaya', '5.00', '2025-03-09 09:19:09'),
-(122, 'Joko3', 176, 'Sangat lengkap (air bersih, sabun, tisu, pengharum, dll.)', '5.00', '2025-03-09 09:19:09'),
-(123, 'Joko3', 181, 'Sangat cepat dan responsif', '5.00', '2025-03-09 09:19:09'),
-(124, 'Joko3', 186, 'Sangat luas, tidak pernah penuh', '5.00', '2025-03-09 09:19:09'),
-(125, 'Joko3', 191, 'Gratis, tidak ada biaya parkir', '5.00', '2025-03-09 09:19:09'),
-(126, 'Joko3', 196, 'Sangat aman, ada CCTV dan petugas 24 jam', '5.00', '2025-03-09 09:19:09'),
-(127, 'Joko3', 201, 'Tidak pernah terjadi kasus kehilangan', '5.00', '2025-03-09 09:19:09'),
-(128, 'Joko3', 206, 'Sangat dekat, langsung ke area wisata', '5.00', '2025-03-09 09:19:09'),
-(129, 'Kiki', 26, 'Mobil pribadi atau rental', '5.00', '2025-03-09 09:19:54'),
-(130, 'Kiki', 31, 'Sangat mudah (jalan besar, mulus, bisa dilalui semua kendaraan)', '5.00', '2025-03-09 09:19:54'),
-(131, 'Kiki', 36, 'Jalan mulus dan lebar, tidak ada kendala', '5.00', '2025-03-09 09:19:54'),
-(132, 'Kiki', 41, 'Ya, tersedia bus/angkot dengan biaya murah', '5.00', '2025-03-09 09:19:54'),
-(133, 'Kiki', 46, 'Ya, tersedia shuttle gratis dari pengelola wisata', '5.00', '2025-03-09 09:19:54'),
-(134, 'Kiki', 76, 'Sangat Murah (< Rp 10.000)', '5.00', '2025-03-09 09:19:54'),
-(135, 'Kiki', 81, 'Ya, semua kategori harga tersedia', '5.00', '2025-03-09 09:19:54'),
-(136, 'Kiki', 86, 'Ya, diperbolehkan tanpa batasan', '5.00', '2025-03-09 09:19:54'),
-(137, 'Kiki', 91, 'Banyak restoran dengan makanan berkualitas dan beragam', '5.00', '2025-03-09 09:19:54'),
-(138, 'Kiki', 96, 'Sangat baik (standar kesehatan tinggi, pengawasan ketat)', '5.00', '2025-03-09 09:19:54'),
-(139, 'Kiki', 101, 'Sangat murah (< Rp 100.000/malam)', '5.00', '2025-03-09 09:19:54'),
-(140, 'Kiki', 106, 'Ya, tersedia untuk semua anggaran', '5.00', '2025-03-09 09:19:54'),
-(141, 'Kiki', 111, 'Sangat baik (fasilitas lengkap & modern)', '5.00', '2025-03-09 09:19:54'),
-(142, 'Kiki', 116, 'Ya, tersedia banyak pilihan paket wisata', '5.00', '2025-03-09 09:19:54'),
-(143, 'Kiki', 121, 'Ya, tersedia banyak fasilitas tambahan', '5.00', '2025-03-09 09:19:54'),
-(144, 'Kiki', 126, 'Sangat aman, tanpa ada risiko', '5.00', '2025-03-09 09:19:54'),
-(145, 'Kiki', 131, 'Sangat aman, tidak ada kasus kriminal', '5.00', '2025-03-09 09:19:54'),
-(146, 'Kiki', 136, 'Ya, tersedia petugas keamanan 24 jam', '5.00', '2025-03-09 09:19:54'),
-(147, 'Kiki', 141, 'Sangat baik, ada prosedur darurat yang jelas', '5.00', '2025-03-09 09:19:54'),
-(148, 'Kiki', 146, 'Ya, tersedia layanan lengkap', '5.00', '2025-03-09 09:19:54'),
-(149, 'Kiki', 151, 'Tidak pernah ada kasus pungli', '5.00', '2025-03-09 09:19:54'),
-(150, 'Kiki', 156, 'Tidak ada biaya tambahan yang tidak resmi', '5.00', '2025-03-09 09:19:54'),
-(151, 'Kiki', 161, 'Sangat bersih dan terawat', '5.00', '2025-03-09 09:19:54'),
-(152, 'Kiki', 166, 'Sangat cukup, tidak ada antrean', '5.00', '2025-03-09 09:19:54'),
-(153, 'Kiki', 171, 'Gratis, tanpa biaya', '5.00', '2025-03-09 09:19:55'),
-(154, 'Kiki', 176, 'Sangat lengkap (air bersih, sabun, tisu, pengharum, dll.)', '5.00', '2025-03-09 09:19:55'),
-(155, 'Kiki', 181, 'Sangat cepat dan responsif', '5.00', '2025-03-09 09:19:55'),
-(156, 'Kiki', 186, 'Sangat luas, tidak pernah penuh', '5.00', '2025-03-09 09:19:55'),
-(157, 'Kiki', 191, 'Gratis, tidak ada biaya parkir', '5.00', '2025-03-09 09:19:55'),
-(158, 'Kiki', 196, 'Sangat aman, ada CCTV dan petugas 24 jam', '5.00', '2025-03-09 09:19:55'),
-(159, 'Kiki', 201, 'Tidak pernah terjadi kasus kehilangan', '5.00', '2025-03-09 09:19:55'),
-(160, 'Kiki', 206, 'Sangat dekat, langsung ke area wisata', '5.00', '2025-03-09 09:19:55');
+(1, 'Julius', 26, 'Mobil pribadi atau rental', '5.00', '2025-03-12 21:09:18'),
+(2, 'Julius', 31, 'Sangat mudah (jalan besar, mulus, bisa dilalui semua kendaraan)', '5.00', '2025-03-12 21:09:18'),
+(3, 'Julius', 36, 'Jalan mulus dan lebar, tidak ada kendala', '5.00', '2025-03-12 21:09:18'),
+(4, 'Julius', 41, 'Ya, tersedia bus/angkot dengan biaya murah', '5.00', '2025-03-12 21:09:18'),
+(5, 'Julius', 46, 'Ya, tersedia shuttle gratis dari pengelola wisata', '5.00', '2025-03-12 21:09:18'),
+(6, 'Julius', 76, 'Sangat Murah (< Rp 10.000)', '5.00', '2025-03-12 21:09:18'),
+(7, 'Julius', 81, 'Ya, semua kategori harga tersedia', '5.00', '2025-03-12 21:09:18'),
+(8, 'Julius', 86, 'Ya, diperbolehkan tanpa batasan', '5.00', '2025-03-12 21:09:18'),
+(9, 'Julius', 91, 'Banyak restoran dengan makanan berkualitas dan beragam', '5.00', '2025-03-12 21:09:18'),
+(10, 'Julius', 96, 'Sangat baik (standar kesehatan tinggi, pengawasan ketat)', '5.00', '2025-03-12 21:09:18'),
+(11, 'Julius', 101, 'Sangat murah (< Rp 100.000/malam)', '5.00', '2025-03-12 21:09:18'),
+(12, 'Julius', 106, 'Ya, tersedia untuk semua anggaran', '5.00', '2025-03-12 21:09:18'),
+(13, 'Julius', 111, 'Sangat baik (fasilitas lengkap & modern)', '5.00', '2025-03-12 21:09:18'),
+(14, 'Julius', 116, 'Ya, tersedia banyak pilihan paket wisata', '5.00', '2025-03-12 21:09:18'),
+(15, 'Julius', 121, 'Ya, tersedia banyak fasilitas tambahan', '5.00', '2025-03-12 21:09:18'),
+(16, 'Julius', 126, 'Sangat aman, tanpa ada risiko', '5.00', '2025-03-12 21:09:18'),
+(17, 'Julius', 131, 'Sangat aman, tidak ada kasus kriminal', '5.00', '2025-03-12 21:09:18'),
+(18, 'Julius', 136, 'Ya, tersedia petugas keamanan 24 jam', '5.00', '2025-03-12 21:09:18'),
+(19, 'Julius', 141, 'Sangat baik, ada prosedur darurat yang jelas', '5.00', '2025-03-12 21:09:18'),
+(20, 'Julius', 146, 'Ya, tersedia layanan lengkap', '5.00', '2025-03-12 21:09:18'),
+(21, 'Julius', 151, 'Tidak pernah ada kasus pungli', '5.00', '2025-03-12 21:09:18'),
+(22, 'Julius', 156, 'Tidak ada biaya tambahan yang tidak resmi', '5.00', '2025-03-12 21:09:18'),
+(23, 'Julius', 161, 'Sangat bersih dan terawat', '5.00', '2025-03-12 21:09:18'),
+(24, 'Julius', 166, 'Sangat cukup, tidak ada antrean', '5.00', '2025-03-12 21:09:18'),
+(25, 'Julius', 171, 'Gratis, tanpa biaya', '5.00', '2025-03-12 21:09:18'),
+(26, 'Julius', 176, 'Sangat lengkap (air bersih, sabun, tisu, pengharum, dll.)', '5.00', '2025-03-12 21:09:18'),
+(27, 'Julius', 181, 'Sangat cepat dan responsif', '5.00', '2025-03-12 21:09:18'),
+(28, 'Julius', 186, 'Sangat luas, tidak pernah penuh', '5.00', '2025-03-12 21:09:18'),
+(29, 'Julius', 191, 'Gratis, tidak ada biaya parkir', '5.00', '2025-03-12 21:09:18'),
+(30, 'Julius', 196, 'Sangat aman, ada CCTV dan petugas 24 jam', '5.00', '2025-03-12 21:09:18'),
+(31, 'Julius', 201, 'Tidak pernah terjadi kasus kehilangan', '5.00', '2025-03-12 21:09:18'),
+(32, 'Julius', 206, 'Sangat dekat, langsung ke area wisata', '5.00', '2025-03-12 21:09:18');
 
 -- --------------------------------------------------------
 
@@ -387,36 +323,36 @@ CREATE TABLE `matrix` (
 --
 
 INSERT INTO `matrix` (`id_matrix`, `id_alternatif`, `id_kriteria`, `nilai`) VALUES
-(331, 1, 'K001', '4.50'),
-(332, 1, 'K002', '4.50'),
-(333, 1, 'K003', '4.50'),
-(334, 1, 'K004', '4.50'),
-(335, 1, 'K005', '4.50'),
-(336, 1, 'K006', '4.50'),
-(337, 2, 'K001', '5.00'),
-(338, 2, 'K002', '5.00'),
-(339, 2, 'K003', '5.00'),
-(340, 2, 'K004', '5.00'),
-(341, 2, 'K005', '5.00'),
-(342, 2, 'K006', '5.00'),
-(343, 3, 'K001', '5.00'),
-(344, 3, 'K002', '5.00'),
-(345, 3, 'K003', '5.00'),
-(346, 3, 'K004', '5.00'),
-(347, 3, 'K005', '5.00'),
-(348, 3, 'K006', '5.00'),
-(349, 4, 'K001', '4.50'),
-(350, 4, 'K002', '4.50'),
-(351, 4, 'K003', '4.50'),
-(352, 4, 'K004', '4.50'),
-(353, 4, 'K005', '4.50'),
-(354, 4, 'K006', '4.50'),
-(355, 5, 'K001', '5.00'),
-(356, 5, 'K002', '5.00'),
-(357, 5, 'K003', '5.00'),
-(358, 5, 'K004', '5.00'),
-(359, 5, 'K005', '5.00'),
-(360, 5, 'K006', '5.00');
+(1, 1, 'K001', '4.40'),
+(2, 1, 'K002', '4.14'),
+(3, 1, 'K003', '4.14'),
+(4, 1, 'K004', '4.40'),
+(5, 1, 'K005', '4.36'),
+(6, 1, 'K006', '4.36'),
+(7, 2, 'K001', '4.65'),
+(8, 2, 'K002', '4.39'),
+(9, 2, 'K003', '4.39'),
+(10, 2, 'K004', '4.65'),
+(11, 2, 'K005', '4.61'),
+(12, 2, 'K006', '4.61'),
+(13, 3, 'K001', '4.90'),
+(14, 3, 'K002', '4.64'),
+(15, 3, 'K003', '4.64'),
+(16, 3, 'K004', '4.90'),
+(17, 3, 'K005', '4.86'),
+(18, 3, 'K006', '4.86'),
+(19, 4, 'K001', '5.00'),
+(20, 4, 'K002', '4.89'),
+(21, 4, 'K003', '4.89'),
+(22, 4, 'K004', '5.00'),
+(23, 4, 'K005', '5.00'),
+(24, 4, 'K006', '5.00'),
+(25, 5, 'K001', '4.15'),
+(26, 5, 'K002', '3.89'),
+(27, 5, 'K003', '3.89'),
+(28, 5, 'K004', '4.15'),
+(29, 5, 'K005', '4.11'),
+(30, 5, 'K006', '4.11');
 
 -- --------------------------------------------------------
 
@@ -436,9 +372,7 @@ CREATE TABLE `riwayat_rekomendasi` (
 --
 
 INSERT INTO `riwayat_rekomendasi` (`id_riwayat`, `nama_user`, `rekomendasi`, `tanggal`) VALUES
-(10, 'Sari', '[{\"id_alternatif\":1,\"nama_wisata\":\"Danau Lau Kawar\",\"nilai\":0},{\"id_alternatif\":2,\"nama_wisata\":\"Gunung Sibayak\",\"nilai\":0},{\"id_alternatif\":3,\"nama_wisata\":\"Air Terjun Sipiso-Piso\",\"nilai\":0}]', '2025-03-09 09:15:30'),
-(11, 'Joko3', '[{\"id_alternatif\":2,\"nama_wisata\":\"Gunung Sibayak\",\"nilai\":0.6250000000000001},{\"id_alternatif\":3,\"nama_wisata\":\"Air Terjun Sipiso-Piso\",\"nilai\":0.6250000000000001},{\"id_alternatif\":5,\"nama_wisata\":\"Air Panas Lau Sidebuk-Debuk\",\"nilai\":0.6250000000000001}]', '2025-03-09 09:19:10'),
-(12, 'Kiki', '[{\"id_alternatif\":2,\"nama_wisata\":\"Gunung Sibayak\",\"nilai\":0.6250000000000001},{\"id_alternatif\":3,\"nama_wisata\":\"Air Terjun Sipiso-Piso\",\"nilai\":0.6250000000000001},{\"id_alternatif\":5,\"nama_wisata\":\"Air Panas Lau Sidebuk-Debuk\",\"nilai\":0.6250000000000001}]', '2025-03-09 09:19:55');
+(36, 'Julius', '[{\"id_alternatif\":3,\"nama_wisata\":\"Air Terjun Sipiso-Piso\",\"nilai\":0.6118668151499633},{\"id_alternatif\":4,\"nama_wisata\":\"Bukit Gundaling\",\"nilai\":0.5783489628685632},{\"id_alternatif\":2,\"nama_wisata\":\"Gunung Sibayak\",\"nilai\":0.5510853516082521}]', '2025-03-12 21:09:18');
 
 -- --------------------------------------------------------
 
@@ -527,7 +461,7 @@ ALTER TABLE `alternatif`
 -- AUTO_INCREMENT for table `jawaban_user`
 --
 ALTER TABLE `jawaban_user`
-  MODIFY `id_jawaban` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=161;
+  MODIFY `id_jawaban` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=33;
 
 --
 -- AUTO_INCREMENT for table `kuesioner`
@@ -539,13 +473,13 @@ ALTER TABLE `kuesioner`
 -- AUTO_INCREMENT for table `matrix`
 --
 ALTER TABLE `matrix`
-  MODIFY `id_matrix` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=361;
+  MODIFY `id_matrix` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=31;
 
 --
 -- AUTO_INCREMENT for table `riwayat_rekomendasi`
 --
 ALTER TABLE `riwayat_rekomendasi`
-  MODIFY `id_riwayat` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id_riwayat` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=37;
 
 --
 -- AUTO_INCREMENT for table `users`
