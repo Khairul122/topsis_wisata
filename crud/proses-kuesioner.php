@@ -88,7 +88,7 @@ foreach ($jawaban as $id_kriteria => $pertanyaan_array) {
     }
 }
 
-function getAlternatifRating($koneksi, $id_alternatif, $id_kriteria)
+function getAlternatifRating($koneksi, $id_alternatif, $id_kriteria, $nilai_user)
 {
     $query_kriteria = "SELECT bobot, jenis FROM kriteria WHERE id_kriteria = ?";
     $stmt = $koneksi->prepare($query_kriteria);
@@ -96,42 +96,43 @@ function getAlternatifRating($koneksi, $id_alternatif, $id_kriteria)
     $stmt->execute();
     $result_kriteria = $stmt->get_result();
     $kriteria_info = $result_kriteria->fetch_assoc();
-    
-    $base_nilai = 3.0;
-    
-    $alt_modifier = ($id_alternatif % 5) * 0.5; 
-    
-    $krit_modifier = 0;
-    if ($kriteria_info) {
-        $bobot = floatval($kriteria_info['bobot']);
-        $jenis = $kriteria_info['jenis'];
-        
-        $weight_factor = $bobot * 2.5; 
-    
-        if ($jenis == 'cost') {
-            $krit_modifier = -$weight_factor;
-        } else { // benefit
-            $krit_modifier = $weight_factor;
-        }
+
+    if (!$kriteria_info) {
+        return 1;
     }
-    
-    $nilai = $base_nilai + $alt_modifier + $krit_modifier;
-    
+
+    $bobot = floatval($kriteria_info['bobot']);
+    $jenis = $kriteria_info['jenis'];
+
+    $base_nilai = 3.0 + ($id_alternatif % 5) * 0.5;
+
+    if ($jenis == 'cost') {
+        $krit_modifier = - ($bobot * 1.5);
+    } else {
+        $krit_modifier = $bobot * 1.5;
+    }
+
+    $nilai = $base_nilai + $krit_modifier;
+
+    if (isset($nilai_user) && $nilai_user > 0) {
+        $nilai = ($nilai * 0.5) + ($nilai_user * 0.5);
+    }
+
     return max(1, min(5, $nilai));
 }
+
 
 $matrix = array();
 foreach ($alternatif as $id_alternatif => $nama_wisata) {
     foreach ($kriteria as $id_kriteria => $nama_kriteria) {
-        $nilai = getAlternatifRating($koneksi, $id_alternatif, $id_kriteria);
-        
-        if (isset($nilai_kriteria[$id_kriteria]) && $nilai_kriteria[$id_kriteria] > 0) {
-            $nilai = ($nilai * 0.7) + ($nilai_kriteria[$id_kriteria] * 0.3);
-        }
-        
-        $matrix[$id_alternatif][$id_kriteria] = max(1, min(5, $nilai));
+        $nilai_user = isset($nilai_kriteria[$id_kriteria]) ? $nilai_kriteria[$id_kriteria] : 0;
+
+        $nilai = getAlternatifRating($koneksi, $id_alternatif, $id_kriteria, $nilai_user);
+
+        $matrix[$id_alternatif][$id_kriteria] = $nilai;
     }
 }
+
 
 $query_delete = "DELETE FROM matrix";
 $koneksi->query($query_delete);
@@ -182,12 +183,18 @@ foreach ($kriteria as $id_kriteria => $nama_kriteria) {
         $values[] = $kriteria_values[$id_kriteria];
     }
 
+    if (!isset($jenis_kriteria[$id_kriteria])) {
+        die("Error: Jenis kriteria tidak ditemukan untuk ID $id_kriteria!");
+    }
+
     if ($jenis_kriteria[$id_kriteria] == 'benefit') {
         $positive_ideal[$id_kriteria] = max($values);
         $negative_ideal[$id_kriteria] = min($values);
-    } else {
+    } elseif ($jenis_kriteria[$id_kriteria] == 'cost') {
         $positive_ideal[$id_kriteria] = min($values);
         $negative_ideal[$id_kriteria] = max($values);
+    } else {
+        die("Error: Jenis kriteria untuk ID $id_kriteria tidak valid!");
     }
 }
 
@@ -215,19 +222,17 @@ foreach ($alternatif as $id_alternatif => $nama_wisata) {
     $negative_sum = $negative_distance[$id_alternatif];
     $total_distance = $positive_sum + $negative_sum;
 
-    if ($total_distance < 1e-10) {
-        $preference = 0.5 + (0.01 * $id_alternatif);
-    } else {
+    if ($total_distance > 0) {
         $preference = $negative_sum / $total_distance;
+    } else {
+        $preference = 0.5;
     }
 
-    $preference = max(0.01, min(0.99, $preference));
+    $preference = max(0.0001, min(0.9999, $preference));
+
     $preference_values[$id_alternatif] = $preference;
-
-    if ($preference > $max_preference) {
-        $max_preference = $preference;
-    }
 }
+
 
 if ($max_preference > 0) {
     foreach ($preference_values as $id_alternatif => $preference) {
