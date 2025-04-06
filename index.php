@@ -430,6 +430,27 @@
             transition: opacity 0.8s ease, transform 0.8s ease;
         }
 
+        .error-message {
+            color: #ff6b6b;
+            font-size: 0.8rem;
+            margin-top: 5px;
+        }
+
+        .error-alert {
+            background-color: #ff6b6b;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .error-alert p {
+            margin: 0;
+            font-weight: 500;
+        }
+
         @keyframes fadeIn {
             from {
                 opacity: 0;
@@ -640,66 +661,71 @@
         </div>
 
         <div class="kuesioner-wrapper">
-            <div class="kuesioner-container">
-                <form action="crud/proses-kuesioner.php" method="post" id="formKuesioner">
-                    <?php
-                    include 'koneksi.php';
+            <div class="kuesioner-wrapper">
+                <div class="kuesioner-container">
+                    <?php if (isset($_GET['error']) && $_GET['error'] == 'invalid_input'): ?>
+                        <div class="error-alert">
+                            <p>Harap pilih opsi untuk semua kriteria sebelum melanjutkan.</p>
+                        </div>
+                    <?php endif; ?>
 
-                    $sql_kriteria = "SELECT DISTINCT k.id_kriteria, kr.nama 
-                        FROM kuesioner k 
-                        INNER JOIN kriteria kr ON k.id_kriteria = kr.id_kriteria 
-                        ORDER BY k.id_kriteria ASC";
-                    $result_kriteria = $koneksi->query($sql_kriteria);
+                    <form action="crud/proses-kuesioner.php" method="post" id="formKuesioner">
+                        <div class="form-group">
+                            <label for="nama-user">Nama Anda</label>
+                            <input type="text" name="nama_user" id="nama-user" class="form-control" placeholder="Masukkan nama Anda" required>
+                        </div>
 
-                    function getUniqueOptionsForKriteria($koneksi, $id_kriteria)
-                    {
-                        $sql = "SELECT DISTINCT opsi_jawaban_pertanyaan, bobot_opsi_jawaban_pertanyaan 
-                            FROM kuesioner 
-                            WHERE id_kriteria = '$id_kriteria'
-                            ORDER BY bobot_opsi_jawaban_pertanyaan DESC";
-                        return $koneksi->query($sql);
-                    }
+                        <?php
+                        include 'koneksi.php';
 
-                    if ($result_kriteria->num_rows > 0) {
-                        while ($row_kriteria = $result_kriteria->fetch_assoc()) {
-                            $id_kriteria = $row_kriteria['id_kriteria'];
-                            $nama_kriteria = $row_kriteria['nama'];
+                        $sql_kriteria = "SELECT DISTINCT k.id_kriteria, kr.nama 
+                FROM kuesioner k 
+                INNER JOIN kriteria kr ON k.id_kriteria = kr.id_kriteria 
+                ORDER BY k.id_kriteria ASC";
+                        $result_kriteria = $koneksi->query($sql_kriteria);
 
-                            echo "<div class='form-group'>";
-                            echo "<label for='kriteria-{$id_kriteria}'>{$nama_kriteria}</label>";
-                            echo "<select name='jawaban[{$id_kriteria}]' id='kriteria-{$id_kriteria}' class='form-control'>";
-
-                            $result_opsi = getUniqueOptionsForKriteria($koneksi, $id_kriteria);
-                            if ($result_opsi->num_rows > 0) {
-                                // Default option
-                                $default_value = "";
-                                if ($id_kriteria == 'K001') $default_value = "Pilih";
-                                else if ($id_kriteria == 'K004') $default_value = "Pilih";
-                                else if (in_array($id_kriteria, ['K005', 'K006'])) $default_value = "Pilih";
-                                else if (in_array($id_kriteria, ['K002', 'K003'])) $default_value = "Pilih";
-                                else $default_value = "Menarik";
-
-                                echo "<option value=''>{$default_value}</option>";
-
-                                while ($row_opsi = $result_opsi->fetch_assoc()) {
-                                    $opsi = $row_opsi['opsi_jawaban_pertanyaan'];
-                                    $bobot = $row_opsi['bobot_opsi_jawaban_pertanyaan'];
-                                    echo "<option value='{$bobot}'>{$opsi}</option>";
-                                }
-                            }
-
-                            echo "</select>";
-                            echo "</div>";
+                        function getUniqueOptionsForKriteria($koneksi, $id_kriteria)
+                        {
+                            $sql = "SELECT DISTINCT opsi_jawaban_pertanyaan, bobot_opsi_jawaban_pertanyaan 
+                    FROM kuesioner 
+                    WHERE id_kriteria = '$id_kriteria'
+                    ORDER BY bobot_opsi_jawaban_pertanyaan DESC";
+                            return $koneksi->query($sql);
                         }
-                    } else {
-                        echo "<p>Tidak ada kriteria yang tersedia.</p>";
-                    }
-                    ?>
 
-                    <div class="form-group">
-                        <button type="submit" class="submit-btn cari-btn">CARI</button>
-                    </div>
-                </form>
+                        if ($result_kriteria->num_rows > 0) {
+                            while ($row_kriteria = $result_kriteria->fetch_assoc()) {
+                                $id_kriteria = $row_kriteria['id_kriteria'];
+                                $nama_kriteria = $row_kriteria['nama'];
+
+                                echo "<div class='form-group'>";
+                                echo "<label for='kriteria-{$id_kriteria}'>{$nama_kriteria}</label>";
+                                echo "<select name='jawaban[{$id_kriteria}]' id='kriteria-{$id_kriteria}' class='form-control' required>";
+
+                                $result_opsi = getUniqueOptionsForKriteria($koneksi, $id_kriteria);
+                                if ($result_opsi->num_rows > 0) {
+                                    echo "<option value=''>Pilih</option>";
+
+                                    while ($row_opsi = $result_opsi->fetch_assoc()) {
+                                        $opsi = $row_opsi['opsi_jawaban_pertanyaan'];
+                                        $bobot = $row_opsi['bobot_opsi_jawaban_pertanyaan'];
+                                        echo "<option value='{$bobot}'>{$opsi}</option>";
+                                    }
+                                }
+
+                                echo "</select>";
+                                echo "</div>";
+                            }
+                        } else {
+                            echo "<p>Tidak ada kriteria yang tersedia.</p>";
+                        }
+                        ?>
+
+                        <div class="form-group">
+                            <button type="submit" class="submit-btn cari-btn">CARI</button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </section>
@@ -728,7 +754,6 @@
     </footer>
 
     <script>
-        // Mobile menu functionality
         document.addEventListener('DOMContentLoaded', function() {
             const mobileMenuToggle = document.querySelector('.mobile-menu-toggle');
             const header = document.querySelector('.header');
@@ -738,7 +763,6 @@
                 header.classList.toggle('active');
             });
 
-            // Close menu when clicking a link
             const headerLinks = document.querySelectorAll('.header a');
             headerLinks.forEach(link => {
                 link.addEventListener('click', function() {
@@ -747,7 +771,6 @@
                 });
             });
 
-            // Scroll animation
             const fadeElements = document.querySelectorAll('.fade-scroll');
             const fadeOptions = {
                 threshold: 0.1,
@@ -768,7 +791,6 @@
                 fadeObserver.observe(element);
             });
 
-            // Question animation
             const questionContainers = document.querySelectorAll('.question-container');
             questionContainers.forEach(container => {
                 container.style.opacity = "0";
@@ -777,54 +799,63 @@
                 fadeObserver.observe(container);
             });
 
-            // Form validation
             const form = document.getElementById('formKuesioner');
             if (form) {
                 form.addEventListener('submit', function(e) {
-                    let allQuestionsAnswered = true;
-                    const kriteriaSection = document.querySelectorAll('.kriteria-section');
+                    let allFieldsValid = true;
+                    const selectElements = form.querySelectorAll('select');
 
-                    kriteriaSection.forEach(section => {
-                        const questions = section.querySelectorAll('.question-container');
+                    selectElements.forEach(select => {
+                        if (!select.value) {
+                            allFieldsValid = false;
+                            select.style.borderColor = "#ff6b6b";
 
-                        questions.forEach(question => {
-                            const options = question.querySelectorAll('input[type="radio"]');
-                            let questionAnswered = false;
+                            const formGroup = select.closest('.form-group');
 
-                            options.forEach(option => {
-                                if (option.checked) {
-                                    questionAnswered = true;
-                                }
-                            });
+                            const existingError = formGroup.querySelector('.error-message');
+                            if (existingError) existingError.remove();
 
-                            if (!questionAnswered) {
-                                allQuestionsAnswered = false;
-                                question.style.border = "2px solid #ff6b6b";
-                                question.style.boxShadow = "0 0 10px rgba(255, 107, 107, 0.3)";
-                            } else {
-                                question.style.border = "none";
-                                question.style.boxShadow = "0 2px 5px rgba(0, 0, 0, 0.05)";
-                            }
-                        });
+                            const errorMsg = document.createElement('div');
+                            errorMsg.className = 'error-message';
+                            errorMsg.textContent = "Harap pilih salah satu opsi";
+                            formGroup.appendChild(errorMsg);
+                        } else {
+                            select.style.borderColor = "#eaeaea";
+                            const formGroup = select.closest('.form-group');
+                            const existingError = formGroup.querySelector('.error-message');
+                            if (existingError) existingError.remove();
+                        }
                     });
 
-                    if (!allQuestionsAnswered) {
+                    if (!allFieldsValid) {
                         e.preventDefault();
-                        alert('Harap jawab semua pertanyaan sebelum mengirim.');
-                        window.scrollTo({
-                            top: document.querySelector('.question-container[style*="border"]').offsetTop - 100,
-                            behavior: 'smooth'
-                        });
+                        const firstError = form.querySelector('select[style*="border-color: #ff6b6b"]');
+                        if (firstError) {
+                            firstError.focus();
+                            window.scrollTo({
+                                top: firstError.closest('.form-group').offsetTop - 100,
+                                behavior: 'smooth'
+                            });
+                        }
                     }
+                });
+
+                form.querySelectorAll('select').forEach(select => {
+                    select.addEventListener('change', function() {
+                        if (this.value) {
+                            this.style.borderColor = "#eaeaea";
+                            const formGroup = this.closest('.form-group');
+                            const existingError = formGroup.querySelector('.error-message');
+                            if (existingError) existingError.remove();
+                        }
+                    });
                 });
             }
         });
 
-        // Map initialization
         window.onload = function() {
             var mapElement = document.getElementById('berastagi-map');
             if (!mapElement) {
-                console.error("Element berastagi-map tidak ditemukan!");
                 return;
             }
 
@@ -840,7 +871,6 @@
                 .bindPopup('<b>Berastagi</b><br>Karo, North Sumatra, Indonesia.')
                 .openPopup();
 
-            // Get data from PHP
             var poisData = <?php echo $map_json; ?>;
 
             if (poisData && poisData.length) {
@@ -870,12 +900,10 @@
                 });
             }
 
-            // Resize the map when it becomes visible
             setTimeout(function() {
                 map.invalidateSize();
             }, 500);
 
-            // Resize the map when window is resized
             window.addEventListener('resize', function() {
                 map.invalidateSize();
             });

@@ -2,33 +2,32 @@
 session_start();
 require_once '../koneksi.php';
 
-if ($_SERVER["REQUEST_METHOD"] != "POST" || !isset($_POST['jawaban']) || !isset($_POST['nama_user'])) {
-    header("Location: index.php?error=invalid_input");
+if ($_SERVER["REQUEST_METHOD"] != "POST" || !isset($_POST['jawaban'])) {
+    header("Location: ../index.php?error=invalid_input");
     exit;
 }
 
 $jawaban = $_POST['jawaban'];
-$nama_user = $_POST['nama_user'];
+$nama_user = isset($_POST['nama_user']) ? $_POST['nama_user'] : "Pengunjung_" . date('YmdHis');
 
-foreach ($jawaban as $id_kriteria => $pertanyaan_array) {
-    foreach ($pertanyaan_array as $pertanyaan => $id_kuesioner) {
-        $query_jawaban = "SELECT opsi_jawaban_pertanyaan, bobot_opsi_jawaban_pertanyaan FROM kuesioner WHERE id_kuesioner = ?";
-        $stmt = $koneksi->prepare($query_jawaban);
-        $stmt->bind_param("i", $id_kuesioner);
-        $stmt->execute();
-        $result_jawaban = $stmt->get_result();
-
-        if ($result_jawaban->num_rows > 0) {
-            $row_jawaban = $result_jawaban->fetch_assoc();
-            $teks_jawaban = $row_jawaban['opsi_jawaban_pertanyaan'];
-            $nilai_bobot = $row_jawaban['bobot_opsi_jawaban_pertanyaan'];
-
-            $query_simpan = "INSERT INTO jawaban_user (nama_user, id_kuesioner, jawaban, nilai) VALUES (?, ?, ?, ?)";
-            $stmt_simpan = $koneksi->prepare($query_simpan);
-            $stmt_simpan->bind_param("siss", $nama_user, $id_kuesioner, $teks_jawaban, $nilai_bobot);
-            $stmt_simpan->execute();
-        }
+// Validasi nilai jawaban
+$valid = true;
+foreach ($jawaban as $id_kriteria => $nilai) {
+    if (empty($nilai)) {
+        $valid = false;
+        break;
     }
+}
+
+if (!$valid) {
+    header("Location: ../index.php?error=invalid_input");
+    exit;
+}
+
+// Simpan nilai bobot langsung dari form
+$nilai_kriteria = array();
+foreach ($jawaban as $id_kriteria => $bobot) {
+    $nilai_kriteria[$id_kriteria] = floatval($bobot);
 }
 
 $query_alternatif = "SELECT id_alternatif, nama_wisata FROM alternatif";
@@ -59,32 +58,35 @@ if ($result_kriteria->num_rows > 0) {
     die("Tidak ada data kriteria");
 }
 
-$nilai_kriteria = array();
-foreach ($kriteria as $id_kriteria => $nama_kriteria) {
-    $nilai_kriteria[$id_kriteria] = 0;
-}
+foreach ($jawaban as $id_kriteria => $bobot) {
+    $query_opsi = "SELECT opsi_jawaban_pertanyaan FROM kuesioner 
+                   WHERE id_kriteria = ? AND bobot_opsi_jawaban_pertanyaan = ?";
+    $stmt = $koneksi->prepare($query_opsi);
+    $stmt->bind_param("sd", $id_kriteria, $bobot);
+    $stmt->execute();
+    $result_opsi = $stmt->get_result();
 
-foreach ($jawaban as $id_kriteria => $pertanyaan_array) {
-    $total_bobot = 0;
-    $count = 0;
+    if ($result_opsi->num_rows > 0) {
+        $row_opsi = $result_opsi->fetch_assoc();
+        $teks_jawaban = $row_opsi['opsi_jawaban_pertanyaan'];
 
-    foreach ($pertanyaan_array as $pertanyaan => $id_kuesioner) {
-        $query_bobot = "SELECT bobot_opsi_jawaban_pertanyaan FROM kuesioner WHERE id_kuesioner = ?";
-        $stmt = $koneksi->prepare($query_bobot);
-        $stmt->bind_param("i", $id_kuesioner);
-        $stmt->execute();
-        $result_bobot = $stmt->get_result();
+        $query_kuesioner = "SELECT id_kuesioner FROM kuesioner 
+                            WHERE id_kriteria = ? AND bobot_opsi_jawaban_pertanyaan = ?";
+        $stmt_kuesioner = $koneksi->prepare($query_kuesioner);
+        $stmt_kuesioner->bind_param("sd", $id_kriteria, $bobot);
+        $stmt_kuesioner->execute();
+        $result_kuesioner = $stmt_kuesioner->get_result();
 
-        if ($result_bobot->num_rows > 0) {
-            $row_bobot = $result_bobot->fetch_assoc();
-            $bobot_jawaban = $row_bobot['bobot_opsi_jawaban_pertanyaan'];
-            $total_bobot += $bobot_jawaban;
-            $count++;
+        if ($result_kuesioner->num_rows > 0) {
+            $row_kuesioner = $result_kuesioner->fetch_assoc();
+            $id_kuesioner = $row_kuesioner['id_kuesioner'];
+
+            $query_simpan = "INSERT INTO jawaban_user (nama_user, id_kuesioner, jawaban, nilai) 
+                             VALUES (?, ?, ?, ?)";
+            $stmt_simpan = $koneksi->prepare($query_simpan);
+            $stmt_simpan->bind_param("sisd", $nama_user, $id_kuesioner, $teks_jawaban, $bobot);
+            $stmt_simpan->execute();
         }
-    }
-
-    if ($count > 0) {
-        $nilai_kriteria[$id_kriteria] = $total_bobot / $count;
     }
 }
 
